@@ -11,6 +11,7 @@
     <url>http://maven.apache.org</url>
     <modules>
         <module>api</module>
+        <module>service</module>
     </modules>
     <packaging>pom</packaging>
 </project>
