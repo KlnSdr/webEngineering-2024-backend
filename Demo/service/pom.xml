@@ -8,8 +8,6 @@
     </parent>
     <groupId>com.sks.demo</groupId>
     <artifactId>service</artifactId>
-    <name>Archetype - service</name>
-    <url>http://maven.apache.org</url>
 
     <dependencies>
         <dependency>
