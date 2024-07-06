@@ -13,7 +13,6 @@ public class Listener implements DemoListener {
 
     @Override
     public void listen(DemoRequestMessage baseMessage) {
-        System.out.println(baseMessage.getMessage());
         // ...
         sender.sendResponse(baseMessage, new DemoResponseMessage("Listener got message: " + baseMessage.getMessage()));
     }
