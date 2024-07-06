@@ -1,4 +1,4 @@
-package com.sks.demo.api;
+package com.sks.base.api;
 
 import java.io.Serializable;
 import java.util.UUID;

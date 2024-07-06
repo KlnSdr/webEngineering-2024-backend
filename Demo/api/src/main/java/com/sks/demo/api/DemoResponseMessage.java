@@ -1,8 +1,8 @@
 package com.sks.demo.api;
 
-import java.io.Serializable;
+import com.sks.base.api.BaseMessage;
 
-public class DemoResponseMessage implements Serializable {
+public class DemoResponseMessage extends BaseMessage {
     private String message;
 
     public DemoResponseMessage() {
