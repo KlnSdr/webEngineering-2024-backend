@@ -16,5 +16,6 @@
   <modules>
     <module>Demo</module>
     <module>Gateway</module>
+    <module>BaseApi</module>
   </modules>
 </project>
