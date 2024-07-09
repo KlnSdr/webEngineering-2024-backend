@@ -21,3 +21,13 @@ services:
       - "13000:13000" # Adjust the port according to your Spring Boot application settings
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
+
+  demoservice:
+    build:
+      context: .
+      dockerfile: Demo/service/Dockerfile
+    container_name: webEng_DemoService
+    depends_on:
+      - rabbitmq
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
