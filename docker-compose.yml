@@ -1,5 +1,7 @@
 version: '3.8'
 
+name: web-engineering
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -7,3 +9,15 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Gateway/Dockerfile
+    container_name: webEng_Gateway
+    depends_on:
+      - rabbitmq
+    ports:
+      - "13000:13000" # Adjust the port according to your Spring Boot application settings
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
