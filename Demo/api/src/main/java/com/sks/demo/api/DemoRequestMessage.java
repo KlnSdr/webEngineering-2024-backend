@@ -1,5 +1,7 @@
 package com.sks.demo.api;
 
+import com.sks.base.api.BaseMessage;
+
 public class DemoRequestMessage extends BaseMessage {
     private String message;
 

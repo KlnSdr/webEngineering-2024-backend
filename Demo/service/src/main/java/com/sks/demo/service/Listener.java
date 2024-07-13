@@ -12,8 +12,8 @@ public class Listener implements DemoListener {
     }
 
     @Override
-    public void listen(DemoRequestMessage baseMessage) {
+    public void listen(DemoRequestMessage message) {
         // ...
-        sender.sendResponse(baseMessage, new DemoResponseMessage("Listener got message: " + baseMessage.getMessage()));
+        sender.sendResponse(message, new DemoResponseMessage("Listener got message: " + message.getMessage()));
     }
 }
