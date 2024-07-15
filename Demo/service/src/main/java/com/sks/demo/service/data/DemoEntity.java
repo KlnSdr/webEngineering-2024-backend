@@ -1,16 +1,16 @@
 package com.sks.demo.service.data;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
+@Table(name = "demo_entity_table")
 public class DemoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "demo_id")
     private Long id;
+    @Column(name = "demo_name")
     private String name;
 
     // Getters and Setters
