@@ -1,9 +1,65 @@
 version: '3.8'
 
+name: web-engineering
+
 services:
+  # DATABUS ====================================================
   rabbitmq:
     image: rabbitmq:3-management
     container_name: webEng_RabbitMQ
     ports:
       - "5672:5672"
       - "15672:15672"
+    networks:
+      - web_net
+
+  # GATEWAY ====================================================
+  gateway:
+    build:
+      context: .
+      dockerfile: Gateway/Dockerfile
+    container_name: webEng_Gateway
+    depends_on:
+      - rabbitmq
+      - demo_service
+    ports:
+      - "13000:13000"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+    networks:
+      - web_net
+
+  # DEMO_SERVICE ===============================================
+  demo_service:
+    build:
+      context: .
+      dockerfile: Demo/service/Dockerfile
+    container_name: webEng_DemoService
+    depends_on:
+      - rabbitmq
+      - demo_service_db
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_DATASOURCE_URL: jdbc:mariadb://demo_service_db:3306/demo
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: secret
+    networks:
+      - web_net
+
+  # DEMO-SERVICE-DATABASE ======================================
+  demo_service_db:
+    image: mariadb:10.3
+    ports:
+      - "3306:3306"
+    container_name: webEng_DemoService_DB
+    volumes:
+      - ./Demo/service/db:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+    networks:
+      - web_net
+
+# NETWORKS =====================================================
+networks:
+  web_net:
+    driver: bridge
