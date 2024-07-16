@@ -3,15 +3,17 @@ package com.sks.products.service.data;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "demo_entity_table")
+@Table(name = "products")
 public class ProductEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "demo_id")
+    @Column(name = "PRODUCT_ID")
     private Long id;
-    @Column(name = "demo_name")
+    @Column(name = "PRODUCT_NAME")
     private String name;
+    @Column(name = "PRODUCT_UNIT")
+    private String unit;
 
     // Getters and Setters
     public Long getId() {
@@ -28,5 +30,13 @@ public class ProductEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 }

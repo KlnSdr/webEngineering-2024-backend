@@ -26,22 +26,22 @@ public class ProductsQueueConfig implements BaseQueueConfig {
         return new Queue(getResponseQueueName(), false);
     }
 
-    @Bean
+    @Bean (name = "productsExchange")
     public DirectExchange productsExchange() {
         return new DirectExchange(getExchangeName());
     }
 
-    @Bean
-    public Binding requestBinding(@Qualifier("productsRequestQueue") Queue requestQueue, DirectExchange exchange) {
+    @Bean(name = "productsRequestBinding")
+    public Binding requestBinding(@Qualifier("productsRequestQueue") Queue requestQueue, @Qualifier("productsExchange") DirectExchange exchange) {
         return BindingBuilder.bind(requestQueue).to(exchange).with(getRequestRoutingKey());
     }
 
-    @Bean
+    @Bean(name = "productsMessageConverter")
     public Jackson2JsonMessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
-    @Bean
+    @Bean(name = "productsRabbitTemplate")
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(messageConverter());

@@ -2,12 +2,13 @@ package com.sks.demo.api;
 
 import com.sks.base.api.BaseSenderImpl;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DemoSenderImpl extends BaseSenderImpl<DemoRequestMessage, DemoResponseMessage, DemoQueueConfig> implements DemoSender {
 
-    public DemoSenderImpl(AmqpTemplate amqpTemplate, DemoQueueConfig config) {
+    public DemoSenderImpl(@Qualifier("demoRabbitTemplate") AmqpTemplate amqpTemplate, DemoQueueConfig config) {
         super(amqpTemplate, config);
     }
 

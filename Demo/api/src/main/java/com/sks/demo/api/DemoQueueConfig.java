@@ -26,22 +26,22 @@ public class DemoQueueConfig implements BaseQueueConfig {
         return new Queue(getResponseQueueName(), false);
     }
 
-    @Bean
+    @Bean(name = "demoExchange")
     public DirectExchange demoExchange() {
         return new DirectExchange(getExchangeName());
     }
 
-    @Bean
-    public Binding requestBinding(@Qualifier("demoRequestQueue") Queue requestQueue, DirectExchange exchange) {
+    @Bean(name = "demoRequestBinding")
+    public Binding requestBinding(@Qualifier("demoRequestQueue") Queue requestQueue, @Qualifier("demoExchange") DirectExchange exchange) {
         return BindingBuilder.bind(requestQueue).to(exchange).with(getRequestRoutingKey());
     }
 
-    @Bean
+    @Bean(name = "demoMessageConverter")
     public Jackson2JsonMessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
-    @Bean
+    @Bean(name = "demoRabbitTemplate")
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(messageConverter());
