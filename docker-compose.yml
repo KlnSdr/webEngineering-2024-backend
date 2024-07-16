@@ -59,6 +59,36 @@ services:
     networks:
       - web_net
 
+  # DEMO_SERVICE ===============================================
+  products_service:
+    build:
+      context: .
+      dockerfile: Products/service/Dockerfile
+    container_name: webEng_ProductsService
+    depends_on:
+      - rabbitmq
+      - demo_service_db
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_DATASOURCE_URL: jdbc:mariadb://products_service_db:3307/products
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: secret
+    networks:
+      - web_net
+
+  # DEMO-SERVICE-DATABASE ======================================
+  products_service_db:
+    image: mariadb:10.3
+    ports:
+      - "3307:3306"
+    container_name: webEng_ProductsService_DB
+    volumes:
+      - ./Products/service/db:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+    networks:
+      - web_net
+
 # NETWORKS =====================================================
 networks:
   web_net:
