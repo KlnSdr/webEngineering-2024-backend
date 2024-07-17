@@ -1,13 +1,14 @@
 package com.sks.products.service.data;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 @Component
 public class AutofillProductsOnFirstStart {
-    private static final Logger LOGGER = Logger.getLogger(AutofillProductsOnFirstStart.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(AutofillProductsOnFirstStart.class);
     private final ProductsService productsService;
 
     public AutofillProductsOnFirstStart(ProductsService productsService) {
