@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "products")
 public class ProductEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "PRODUCT_ID")
@@ -14,6 +13,15 @@ public class ProductEntity {
     private String name;
     @Column(name = "PRODUCT_UNIT")
     private String unit;
+
+    // Constructors
+    public ProductEntity() {
+    }
+
+    public ProductEntity(String name, String unit) {
+        this.name = name;
+        this.unit = unit;
+    }
 
     // Getters and Setters
     public Long getId() {

@@ -6,13 +6,21 @@ import java.util.List;
 
 @Service
 public class ProductsService {
-    private ProductsRepository demoRepository;
+    private final ProductsRepository productsRepository;
+
+    public ProductsService(ProductsRepository productsRepository) {
+        this.productsRepository = productsRepository;
+    }
 
     public List<ProductEntity> getAll() {
-        return demoRepository.findAll();
+        return productsRepository.findAll();
     }
 
     public ProductEntity save(ProductEntity demoEntity) {
-        return demoRepository.save(demoEntity);
+        return productsRepository.save(demoEntity);
+    }
+
+    public List<ProductEntity> saveAll(List<ProductEntity> demoEntities) {
+        return productsRepository.saveAll(demoEntities);
     }
 }
