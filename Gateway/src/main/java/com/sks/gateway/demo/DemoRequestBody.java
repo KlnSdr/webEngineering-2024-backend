@@ -1,4 +1,4 @@
-package com.sks.gateway;
+package com.sks.gateway.demo;
 
 public class DemoRequestBody {
     private String message;
