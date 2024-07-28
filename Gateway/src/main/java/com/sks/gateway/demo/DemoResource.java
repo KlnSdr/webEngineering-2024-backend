@@ -1,4 +1,4 @@
-package com.sks.gateway;
+package com.sks.gateway.demo;
 
 import com.sks.demo.api.DemoRequestMessage;
 import com.sks.demo.api.DemoResponseMessage;
