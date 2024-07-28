@@ -26,9 +26,9 @@ public class ProductsServiceTest {
 
     @Test
     public void testGetAll() {
-        ProductEntity product1 = new ProductEntity("", ""); // Assume proper initialization
+        ProductEntity product1 = new ProductEntity("One", "Pieces");
         product1.setId(1L);
-        ProductEntity product2 = new ProductEntity("", ""); // Assume proper initialization
+        ProductEntity product2 = new ProductEntity("Pokemon", "Bälle");
         product1.setId(2L);
         List<ProductEntity> products = Arrays.asList(product1, product2);
 
@@ -44,7 +44,7 @@ public class ProductsServiceTest {
 
     @Test
     public void testFind_Success() {
-        ProductEntity product = new ProductEntity("", ""); // Assume proper initialization
+        ProductEntity product = new ProductEntity("Angriffsbagger", "Netzroller");
         product.setId(1L);
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
 
@@ -65,7 +65,7 @@ public class ProductsServiceTest {
 
     @Test
     public void testSave() {
-        ProductEntity product = new ProductEntity("", ""); // Assume proper initialization
+        ProductEntity product = new ProductEntity("Büroklammer", "Schachtel");
         product.setId(1L);
         when(productsRepository.save(product)).thenReturn(product);
 
@@ -77,9 +77,9 @@ public class ProductsServiceTest {
 
     @Test
     public void testSaveAll() {
-        ProductEntity product1 = new ProductEntity("", ""); // Assume proper initialization
+        ProductEntity product1 = new ProductEntity("Wolle", "Knäuel");
         product1.setId(1L);
-        ProductEntity product2 = new ProductEntity("", ""); // Assume proper initialization
+        ProductEntity product2 = new ProductEntity("Kapitalismus", "Schulden");
         product2.setId(2L);
         List<ProductEntity> products = Arrays.asList(product1, product2);
 

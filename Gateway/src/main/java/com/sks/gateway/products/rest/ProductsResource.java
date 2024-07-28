@@ -20,7 +20,7 @@ public class ProductsResource {
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ProductDTO getProductById(@PathVariable("id") int id) {
+    public ProductDTO getProductById(@PathVariable("id") long id) {
         final ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage(id));
         final ProductDTO product = response.getProduct();
 

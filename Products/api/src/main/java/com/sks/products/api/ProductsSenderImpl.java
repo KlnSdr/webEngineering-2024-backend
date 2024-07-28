@@ -1,6 +1,8 @@
 package com.sks.products.api;
 
 import com.sks.base.api.BaseSenderImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ProductsSenderImpl extends BaseSenderImpl<ProductsRequestMessage, ProductsResponseMessage, ProductsQueueConfig> implements ProductsSender {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductsSenderImpl.class);
 
     public ProductsSenderImpl(@Qualifier("productsRabbitTemplate") AmqpTemplate amqpTemplate, ProductsQueueConfig config) {
         super(amqpTemplate, config);
@@ -23,7 +26,7 @@ public class ProductsSenderImpl extends BaseSenderImpl<ProductsRequestMessage, P
 
     @Override
     protected ProductsResponseMessage createErrorResponse(String errorMessage) {
-        ProductsResponseMessage response = new ProductsResponseMessage();
-        return response;
+        LOGGER.error(errorMessage);
+        return new ProductsResponseMessage();
     }
 }

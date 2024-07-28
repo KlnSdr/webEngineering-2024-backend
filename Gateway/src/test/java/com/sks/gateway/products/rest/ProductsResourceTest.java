@@ -27,7 +27,7 @@ public class ProductsResourceTest {
 
     @Test
     public void testGetProductById_Success() {
-        ProductDTO product = new ProductDTO(1, "Democracy", "t"); // Assume proper initialization
+        ProductDTO product = new ProductDTO(1, "Democracy", "t");
         ProductsResponseMessage responseMessage = new ProductsResponseMessage(product);
         when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
 
@@ -51,8 +51,8 @@ public class ProductsResourceTest {
 
     @Test
     public void testGetMultiple_Success() {
-        ProductDTO product1 = new ProductDTO(1, "", ""); // Assume proper initialization
-        ProductDTO product2 = new ProductDTO(2, "", ""); // Assume proper initialization
+        ProductDTO product1 = new ProductDTO(1, "Deutsch", "Tüten");
+        ProductDTO product2 = new ProductDTO(2, "Mitleid", "Dosen");
         ProductsResponseMessage responseMessage1 = new ProductsResponseMessage(product1);
         ProductsResponseMessage responseMessage2 = new ProductsResponseMessage(product2);
 
