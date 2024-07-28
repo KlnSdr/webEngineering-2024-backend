@@ -3,10 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.sks</groupId>
-        <artifactId>Backend</artifactId>
+        <artifactId>products</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>gateway</artifactId>
+    <groupId>com.sks.products</groupId>
+    <artifactId>products-service</artifactId>
 
     <dependencies>
         <dependency>
@@ -39,11 +40,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.sks.demo</groupId>
-            <artifactId>demo-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>com.sks.products</groupId>
             <artifactId>products-api</artifactId>
             <version>1.0-SNAPSHOT</version>
@@ -54,20 +50,15 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
-        <!-- JUnit 5 -->
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.10.2</version>
-            <scope>test</scope>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>3.3.0</version>
         </dependency>
-
-        <!-- Mockito -->
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>5.12.0</version>
-            <scope>test</scope>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>3.0.4</version>
         </dependency>
     </dependencies>
 
@@ -77,7 +68,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.sks.gateway.GatewayApplication</mainClass>
+                    <mainClass>com.sks.products.service.ProductsServiceApplication</mainClass>
                     <layout>JAR</layout>
                 </configuration>
                 <executions>
@@ -90,5 +81,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

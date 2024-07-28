@@ -1,4 +1,4 @@
-package com.sks.demo.api;
+package com.sks.products.api;
 
 import com.sks.base.api.BaseQueueConfig;
 import org.springframework.amqp.core.*;
@@ -10,38 +10,38 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class DemoQueueConfig implements BaseQueueConfig {
-    public static final String REQUEST_QUEUE_NAME = "demoQueue.request";
-    public static final String RESPONSE_QUEUE_NAME = "demoQueue.response";
-    public static final String EXCHANGE_NAME = "demoExchange";
-    public static final String ROUTING_KEY_REQUEST = "demoService.request.routingKey";
+public class ProductsQueueConfig implements BaseQueueConfig {
+    public static final String REQUEST_QUEUE_NAME = "productsQueue.request";
+    public static final String RESPONSE_QUEUE_NAME = "productsQueue.response";
+    public static final String EXCHANGE_NAME = "productsExchange";
+    public static final String ROUTING_KEY_REQUEST = "productsService.request.routingKey";
 
-    @Bean(name = "demoRequestQueue")
+    @Bean(name = "productsRequestQueue")
     public Queue requestQueue() {
         return new Queue(getRequestQueueName(), false);
     }
 
-    @Bean(name = "demoResponseQueue")
+    @Bean(name = "productsResponseQueue")
     public Queue responseQueue() {
         return new Queue(getResponseQueueName(), false);
     }
 
-    @Bean(name = "demoExchange")
-    public DirectExchange demoExchange() {
+    @Bean (name = "productsExchange")
+    public DirectExchange productsExchange() {
         return new DirectExchange(getExchangeName());
     }
 
-    @Bean(name = "demoRequestBinding")
-    public Binding requestBinding(@Qualifier("demoRequestQueue") Queue requestQueue, @Qualifier("demoExchange") DirectExchange exchange) {
+    @Bean(name = "productsRequestBinding")
+    public Binding requestBinding(@Qualifier("productsRequestQueue") Queue requestQueue, @Qualifier("productsExchange") DirectExchange exchange) {
         return BindingBuilder.bind(requestQueue).to(exchange).with(getRequestRoutingKey());
     }
 
-    @Bean(name = "demoMessageConverter")
+    @Bean(name = "productsMessageConverter")
     public Jackson2JsonMessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
-    @Bean(name = "demoRabbitTemplate")
+    @Bean(name = "productsRabbitTemplate")
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(messageConverter());

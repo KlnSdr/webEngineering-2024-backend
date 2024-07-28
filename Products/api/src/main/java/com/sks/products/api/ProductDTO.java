@@ -1,14 +1,14 @@
-package com.sks.gateway.products.rest;
+package com.sks.products.api;
 
-public class ProductResponse {
+public class ProductDTO {
     private long id;
     private String name;
     private String unit;
 
-    public ProductResponse() {
+    public ProductDTO() {
     }
 
-    public ProductResponse(long id, String name, String unit) {
+    public ProductDTO(long id, String name, String unit) {
         this.id = id;
         this.name = name;
         this.unit = unit;

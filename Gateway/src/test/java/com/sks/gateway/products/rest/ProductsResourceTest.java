@@ -1,43 +1,83 @@
 package com.sks.gateway.products.rest;
 
+import com.sks.products.api.ProductDTO;
+import com.sks.products.api.ProductsRequestMessage;
+import com.sks.products.api.ProductsResponseMessage;
+import com.sks.products.api.ProductsSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.springframework.web.server.ResponseStatusException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ProductsResourceTest {
+    @Mock
+    private ProductsSender sender;
     private ProductsResource controller;
 
     @BeforeEach
     public void setUp() {
-        controller = new ProductsResource();
+        sender = mock(ProductsSender.class);
+        controller = new ProductsResource(sender);
     }
 
     @Test
-    public void testGetProductById() {
-        int id = 1;
-        ProductResponse response = controller.getProductById(id);
+    public void testGetProductById_Success() {
+        ProductDTO product = new ProductDTO(1, "Democracy", "t");
+        ProductsResponseMessage responseMessage = new ProductsResponseMessage(product);
+        when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
 
-        assertNotNull(response);
-        assertEquals(id, response.getId());
-        assertEquals("Streuselkäse", response.getName());
-        assertEquals("t", response.getUnit());
+        ProductDTO result = controller.getProductById(1);
+
+        assertNotNull(result);
+        assertEquals(product.getId(), result.getId());
     }
 
     @Test
-    public void testGetMultiple() {
-        int[] ids = {1, 2, 3};
-        ProductResponse[] responses = controller.getMultiple(ids);
+    public void testGetProductById_NotFound() {
+        ProductsResponseMessage responseMessage = new ProductsResponseMessage(null);
+        when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
 
-        assertNotNull(responses);
-        assertEquals(ids.length, responses.length);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.getProductById(1);
+        });
 
-        for (int i = 0; i < ids.length; i++) {
-            assertNotNull(responses[i]);
-            assertEquals(ids[i], responses[i].getId());
-            assertEquals("Streuselkäse", responses[i].getName());
-            assertEquals("t", responses[i].getUnit());
-        }
+        assertEquals("Product with id 1 not found", exception.getReason());
+    }
+
+    @Test
+    public void testGetMultiple_Success() {
+        ProductDTO product1 = new ProductDTO(1, "Deutsch", "Tüten");
+        ProductDTO product2 = new ProductDTO(2, "Mitleid", "Dosen");
+        ProductsResponseMessage responseMessage1 = new ProductsResponseMessage(product1);
+        ProductsResponseMessage responseMessage2 = new ProductsResponseMessage(product2);
+
+        when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage1).thenReturn(responseMessage2);
+
+        long[] ids = {1, 2};
+        ProductDTO[] results = controller.getMultiple(ids);
+
+        assertNotNull(results);
+        assertEquals(2, results.length);
+        assertEquals(product1.getId(), results[0].getId());
+        assertEquals(product2.getId(), results[1].getId());
+    }
+
+    @Test
+    public void testGetMultiple_NotFound() {
+        ProductsResponseMessage responseMessage = new ProductsResponseMessage(null);
+        when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
+
+        long[] ids = {1, 2};
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.getMultiple(ids);
+        });
+
+        assertEquals("Product with id + 1 not found", exception.getReason());
     }
 }
