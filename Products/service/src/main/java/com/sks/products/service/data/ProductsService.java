@@ -3,6 +3,7 @@ package com.sks.products.service.data;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProductsService {
@@ -14,6 +15,10 @@ public class ProductsService {
 
     public List<ProductEntity> getAll() {
         return productsRepository.findAll();
+    }
+
+    public Optional<ProductEntity> find(long productId) {
+        return productsRepository.findById(productId);
     }
 
     public ProductEntity save(ProductEntity demoEntity) {

@@ -1,26 +1,35 @@
 package com.sks.products.service;
 
-import com.sks.products.api.ProductsListener;
-import com.sks.products.api.ProductsRequestMessage;
-import com.sks.products.api.ProductsResponseMessage;
-import com.sks.products.api.ProductsSender;
-import com.sks.products.service.data.ProductsRepository;
+import com.sks.products.api.*;
+import com.sks.products.service.data.ProductEntity;
+import com.sks.products.service.data.ProductsService;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Component
 public class Listener implements ProductsListener {
     private final ProductsSender sender;
-    private final ProductsRepository repo;
+    private final ProductsService service;
 
-    public Listener(ProductsSender sender, ProductsRepository repo) {
+    public Listener(ProductsSender sender, ProductsService service) {
         this.sender = sender;
-        this.repo = repo;
+        this.service = service;
     }
 
     @Override
     public void listen(ProductsRequestMessage message) {
-        System.out.println("Listener got message: " + message.getMessage());
-        repo.findAll().forEach(productsEntity -> System.out.println(productsEntity.getName()));
-        sender.sendResponse(message, new ProductsResponseMessage("Listener got message: " + message.getMessage()));
+        final Optional<ProductEntity> product = service.find(message.getProductId());
+
+        if (product.isEmpty()) {
+            sender.sendResponse(message, new ProductsResponseMessage());
+            return;
+        }
+
+        sender.sendResponse(message, new ProductsResponseMessage(map(product.get())));
+    }
+
+    private ProductDTO map(ProductEntity entity) {
+        return new ProductDTO(entity.getId(), entity.getName(), entity.getUnit());
     }
 }

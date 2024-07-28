@@ -24,7 +24,6 @@ public class ProductsSenderImpl extends BaseSenderImpl<ProductsRequestMessage, P
     @Override
     protected ProductsResponseMessage createErrorResponse(String errorMessage) {
         ProductsResponseMessage response = new ProductsResponseMessage();
-        response.setMessage(errorMessage);
         return response;
     }
 }

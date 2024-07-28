@@ -3,20 +3,20 @@ package com.sks.products.api;
 import com.sks.base.api.BaseMessage;
 
 public class ProductsRequestMessage extends BaseMessage {
-    private String message;
+    private long productId;
 
     public ProductsRequestMessage() {
     }
 
-    public ProductsRequestMessage(String message) {
-        this.message = message;
+    public ProductsRequestMessage(long productId) {
+        this.productId = productId;
     }
 
-    public String getMessage() {
-        return message;
+    public long getProductId() {
+        return productId;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setProductId(long productId) {
+        this.productId = productId;
     }
 }
