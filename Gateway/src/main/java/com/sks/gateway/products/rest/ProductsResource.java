@@ -27,11 +27,14 @@ public class ProductsResource {
 
     @PostMapping(value = "get-multiple", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ProductResponse[] getMultiple(@RequestBody int[] ids) {
-        ProductResponse[] responses = new ProductResponse[ids.length];
+    public ProductDTO[] getMultiple(@RequestBody int[] ids) {
+        final ProductDTO[] products = new ProductDTO[ids.length];
+
         for (int i = 0; i < ids.length; i++) {
-            responses[i] = new ProductResponse(ids[i], "Streuselkäse", "t");
+            final ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage(ids[i]));
+            products[i] = response.getProduct();
         }
-        return responses;
+
+        return products;
     }
 }
