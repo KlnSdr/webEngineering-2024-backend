@@ -85,6 +85,33 @@ services:
       MYSQL_ROOT_PASSWORD: secret
     networks:
       - web_net
+  # RECIPES_SERVICE ===============================================
+  recipes_service:
+    build:
+      context: .
+      dockerfile: Recipes/service/Dockerfile
+    container_name: webEng_RecipesService
+    depends_on:
+      - rabbitmq
+      - recipes_service_db
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_DATASOURCE_URL: jdbc:mariadb://recipes_service_db:3306/recipes
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: secret
+    networks:
+      - web_net
+
+  # RECIPES-SERVICE-DATABASE ======================================
+  recipes_service_db:
+    image: mariadb:10.3
+    container_name: webEng_RecipesService_DB
+    volumes:
+      - ./Recipes/service/db:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+    networks:
+      - web_net
 
 # NETWORKS =====================================================
 networks:
