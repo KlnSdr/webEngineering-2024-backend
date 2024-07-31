@@ -11,11 +11,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class RecipeSearchTest {
 
-    private SearchEngine controller;
+    private SearchResource controller;
 
     @BeforeEach
     public void setUp() {
-        controller = new SearchEngine();
+        controller = new SearchResource();
     }
 
     @Test
