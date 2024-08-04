@@ -16,18 +16,7 @@ public class SearchResource {
     @GetMapping
     @ResponseBody
     public List<RecipeDTO> searchRecipes(@PathParam("searchTerm") String searchTerm) {
-        RecipeDTO[] recipes = new RecipeDTO[3];
-        recipes[0] = new RecipeDTO(1, "Käsesoße", "https://via.placeholder.com/150", "Soße aus Käse", Date.from(Instant.now()), "/users/42");
-        recipes[1] = new RecipeDTO(2, "Tomatensoße", "https://via.placeholder.com/150", "Soße aus Tomaten", Date.from(Instant.now()), "/users/42");
-        recipes[2] = new RecipeDTO(3, "Leckere Käseoße", "https://via.placeholder.com/150", "Soße aus gutem Käse", Date.from(Instant.now()), "/users/42");
-
-        List<RecipeDTO> selectedRecipe = List.of();
-        for (RecipeDTO recipe : recipes) {
-            if (recipe.getTitle().contains(searchTerm)) {
-                selectedRecipe.add(recipe);
-            }
-        }
-        return selectedRecipe;
+        return List.of(new RecipeDTO(1, searchTerm, "https://via.placeholder.com/150", "Soße aus Käse", Date.from(Instant.now()), "/users/42"));
     }
 
     @PostMapping ("/by-products")
@@ -40,18 +29,8 @@ public class SearchResource {
 
         List<RecipeDTO> selectedRecipe = List.of();
         for (int i = 0; i < recipes.length; i++) {
-            boolean containsAll = true;
-            for (int j = 0; j < products.length; j++) {
-                if (!recipes[i].getDescription().contains(products[j])) {
-                    containsAll = false;
-                    break;
-                }
-            }
-            if (containsAll) {
-                selectedRecipe.add(recipes[i]);
-            }
+         selectedRecipe.add(recipes[i]);
         }
-
         return selectedRecipe;
     }
 }
