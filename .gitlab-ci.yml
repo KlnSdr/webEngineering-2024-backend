@@ -21,6 +21,6 @@ build_job:
   script:
     - echo "Maven packaging started"
     - "mvn clean package"
-  artifacts:
-    paths:
-      - target/
+#  artifacts:
+#    paths:
+#      - target/
