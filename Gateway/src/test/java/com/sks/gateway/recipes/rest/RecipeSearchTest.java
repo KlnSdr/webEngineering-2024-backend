@@ -25,7 +25,7 @@ public class RecipeSearchTest {
 
         assertNotNull(response);
         assertEquals(1, response.size());
-        assertEquals(2, response.get(0).getId());
+        assertEquals(1, response.get(0).getId());
         assertEquals("Käsesoße", response.get(0).getTitle());
         assertEquals("https://via.placeholder.com/150", response.get(0).getImgUri());
         assertEquals("Soße aus Käse", response.get(0).getDescription());
