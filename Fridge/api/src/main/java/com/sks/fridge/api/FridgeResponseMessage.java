@@ -1,14 +1,14 @@
-package com.sks.demo.api;
+package com.sks.fridge.api;
 
 import com.sks.base.api.BaseMessage;
 
-public class DemoRequestMessage extends BaseMessage {
+public class FridgeResponseMessage extends BaseMessage {
     private String message;
 
-    public DemoRequestMessage() {
+    public FridgeResponseMessage() {
     }
 
-    public DemoRequestMessage(String message) {
+    public FridgeResponseMessage(String message) {
         this.message = message;
     }
 

@@ -1,16 +1,16 @@
-package com.sks.demo.service.data;
+package com.sks.fridge.service.data;
 
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "demo_entity_table")
-public class DemoEntity {
+@Table(name = "fridge_entity_table")
+public class FridgeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "demo_id")
+    @Column(name = "fridge_id")
     private Long id;
-    @Column(name = "demo_name")
+    @Column(name = "fridge_name")
     private String name;
 
     // Getters and Setters

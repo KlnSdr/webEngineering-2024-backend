@@ -1,4 +1,4 @@
-package com.sks.demo.api;
+package com.sks.fridge.api;
 
 import com.sks.base.api.BaseQueueConfig;
 import org.springframework.amqp.core.*;
@@ -10,38 +10,38 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class DemoQueueConfig implements BaseQueueConfig {
-    public static final String REQUEST_QUEUE_NAME = "demoQueue.request";
-    public static final String RESPONSE_QUEUE_NAME = "demoQueue.response";
-    public static final String EXCHANGE_NAME = "demoExchange";
-    public static final String ROUTING_KEY_REQUEST = "demoService.request.routingKey";
+public class FridgeQueueConfig implements BaseQueueConfig {
+    public static final String REQUEST_QUEUE_NAME = "fridgeQueue.request";
+    public static final String RESPONSE_QUEUE_NAME = "fridgeQueue.response";
+    public static final String EXCHANGE_NAME = "fridgeExchange";
+    public static final String ROUTING_KEY_REQUEST = "fridgeService.request.routingKey";
 
-    @Bean(name = "demoRequestQueue")
+    @Bean(name = "fridgeRequestQueue")
     public Queue requestQueue() {
         return new Queue(getRequestQueueName(), false);
     }
 
-    @Bean(name = "demoResponseQueue")
+    @Bean(name = "fridgeResponseQueue")
     public Queue responseQueue() {
         return new Queue(getResponseQueueName(), false);
     }
 
-    @Bean(name = "demoExchange")
-    public DirectExchange demoExchange() {
+    @Bean(name = "fridgeExchange")
+    public DirectExchange fridgeExchange() {
         return new DirectExchange(getExchangeName());
     }
 
-    @Bean(name = "demoRequestBinding")
-    public Binding requestBinding(@Qualifier("demoRequestQueue") Queue requestQueue, @Qualifier("demoExchange") DirectExchange exchange) {
+    @Bean(name = "fridgeRequestBinding")
+    public Binding requestBinding(@Qualifier("fridgeRequestQueue") Queue requestQueue, @Qualifier("fridgeExchange") DirectExchange exchange) {
         return BindingBuilder.bind(requestQueue).to(exchange).with(getRequestRoutingKey());
     }
 
-    @Bean(name = "demoMessageConverter")
+    @Bean(name = "fridgeMessageConverter")
     public Jackson2JsonMessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
-    @Bean(name = "demoRabbitTemplate")
+    @Bean(name = "fridgeRabbitTemplate")
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(messageConverter());
