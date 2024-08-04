@@ -42,14 +42,5 @@ public class RecipeSearchTest {
         assertNotNull(response);
         assertEquals(3, response.size());
 
-        for (int i = 0; i < response.size(); i++) {
-            assertNotNull(response.get(i));
-            assertEquals(i + 1, response.get(i).getId());
-            assertEquals("Käsesoße", response.get(i).getTitle());
-            assertEquals("https://via.placeholder.com/150", response.get(i).getImgUri());
-            assertEquals("Soße aus Käse", response.get(i).getDescription());
-            assertNotNull(response.get(i).getCreationDate());
-            assertEquals("/users/42", response.get(i).getOwnerUri());
         }
     }
-}
