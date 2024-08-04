@@ -1,0 +1,26 @@
+variables:
+  MAVEN_OPTS: -Dmaven.repo.local=.m2/repository
+
+cache:
+  paths:
+    - .m2/repository
+    - target
+
+image: maven:3.9.7-eclipse-temurin-21
+
+stages:
+  - build
+  - deploy
+
+# build -----------------------------------------
+build_job:
+  stage: build
+  tags:
+    - docker
+
+  script:
+    - echo "Maven packaging started"
+    - "mvn clean package"
+  artifacts:
+    paths:
+      - target/
