@@ -6,7 +6,7 @@ COPY . /app
 RUN mvn clean package
 
 FROM eclipse-temurin:21
-COPY --from=maven /app/Demo/service/target/demo-service-1.0-SNAPSHOT.jar /app.jar
+COPY --from=maven /app/Fridge/service/target/fridge-service-1.0-SNAPSHOT.jar /app.jar
 
 EXPOSE 13000
 ENTRYPOINT ["java","-jar","/app.jar"]

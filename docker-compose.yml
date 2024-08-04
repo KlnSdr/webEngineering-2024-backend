@@ -137,6 +137,33 @@ services:
       MYSQL_ROOT_PASSWORD: secret
     networks:
       - web_net
+  # RECIPES_SERVICE ===============================================
+  fridge_service:
+    build:
+      context: .
+      dockerfile: Fridge/service/Dockerfile
+    container_name: webEng_FridgeService
+    depends_on:
+      - rabbitmq
+      - fridge_service_db
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_DATASOURCE_URL: jdbc:mariadb://fridge_service_db:3306/fridge
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: secret
+    networks:
+      - web_net
+
+  # RECIPES-SERVICE-DATABASE ======================================
+  fridge_service_db:
+    image: mariadb:10.3
+    container_name: webEng_FridgeService_DB
+    volumes:
+      - ./Fridge/service/db:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+    networks:
+      - web_net
 
 # NETWORKS =====================================================
 networks:

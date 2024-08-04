@@ -68,7 +68,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.sks.demo.service.DemoServiceApplication</mainClass>
+                    <mainClass>com.sks.fridge.service.FridgeServiceApplication</mainClass>
                     <layout>JAR</layout>
                 </configuration>
                 <executions>
