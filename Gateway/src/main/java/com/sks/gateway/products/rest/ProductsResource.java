@@ -18,31 +18,33 @@ public class ProductsResource {
         this.productsSender = productsSender;
     }
 
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ProductDTO[] getAllProducts() {
+        return null;
+    }
+
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ProductDTO getProductById(@PathVariable("id") long id) {
-        final ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage(id));
-        final ProductDTO product = response.getProduct();
+        final ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage(new long[] {id}));
+        final ProductDTO[] product = response.getProducts();
 
-        if (product == null) {
+        if (product == null || product.length == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product with id " + id + " not found");
         }
 
-        return product;
+        return product[0];
     }
 
     @PostMapping(value = "get-multiple", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ProductDTO[] getMultiple(@RequestBody long[] ids) {
-        final ProductDTO[] products = new ProductDTO[ids.length];
+        final ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage(ids));
+        final ProductDTO[] products = response.getProducts();
 
-        for (int i = 0; i < ids.length; i++) {
-            final ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage(ids[i]));
-            products[i] = response.getProduct();
-
-            if (products[i] == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product with id + "+ids[i] + " not found");
-            }
+        if (products == null || products.length != ids.length) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Products not found");
         }
 
         return products;

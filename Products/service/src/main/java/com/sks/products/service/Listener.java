@@ -5,6 +5,8 @@ import com.sks.products.service.data.ProductEntity;
 import com.sks.products.service.data.ProductsService;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -19,14 +21,14 @@ public class Listener implements ProductsListener {
 
     @Override
     public void listen(ProductsRequestMessage message) {
-        final Optional<ProductEntity> product = service.find(message.getProductId());
+        final List<ProductDTO> products = new ArrayList<>();
 
-        if (product.isEmpty()) {
-            sender.sendResponse(message, new ProductsResponseMessage());
-            return;
+        for (long id : message.getProductId()) {
+            final Optional<ProductEntity> product = service.find(id);
+            product.ifPresent(entity -> products.add(map(entity)));
         }
 
-        sender.sendResponse(message, new ProductsResponseMessage(map(product.get())));
+        sender.sendResponse(message, new ProductsResponseMessage(products.toArray(new ProductDTO[0])));
     }
 
     private ProductDTO map(ProductEntity entity) {

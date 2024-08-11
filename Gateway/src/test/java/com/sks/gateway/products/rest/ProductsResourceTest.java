@@ -28,7 +28,7 @@ public class ProductsResourceTest {
     @Test
     public void testGetProductById_Success() {
         ProductDTO product = new ProductDTO(1, "Democracy", "t");
-        ProductsResponseMessage responseMessage = new ProductsResponseMessage(product);
+        ProductsResponseMessage responseMessage = new ProductsResponseMessage(new ProductDTO[] {product});
         when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
 
         ProductDTO result = controller.getProductById(1);
@@ -53,10 +53,9 @@ public class ProductsResourceTest {
     public void testGetMultiple_Success() {
         ProductDTO product1 = new ProductDTO(1, "Deutsch", "Tüten");
         ProductDTO product2 = new ProductDTO(2, "Mitleid", "Dosen");
-        ProductsResponseMessage responseMessage1 = new ProductsResponseMessage(product1);
-        ProductsResponseMessage responseMessage2 = new ProductsResponseMessage(product2);
+        ProductsResponseMessage responseMessage = new ProductsResponseMessage(new ProductDTO[] {product1, product2});
 
-        when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage1).thenReturn(responseMessage2);
+        when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
 
         long[] ids = {1, 2};
         ProductDTO[] results = controller.getMultiple(ids);
@@ -78,6 +77,6 @@ public class ProductsResourceTest {
             controller.getMultiple(ids);
         });
 
-        assertEquals("Product with id + 1 not found", exception.getReason());
+        assertEquals("Products not found", exception.getReason());
     }
 }
