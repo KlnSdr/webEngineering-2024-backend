@@ -21,14 +21,27 @@ public class Listener implements ProductsListener {
 
     @Override
     public void listen(ProductsRequestMessage message) {
+        final ProductDTO[] payload = switch (message.getRequestType()) {
+            case ALL -> getAll();
+            case FILTERED -> getFiltered(message.getProductId());
+        };
+
+        sender.sendResponse(message, new ProductsResponseMessage(payload));
+    }
+
+    private ProductDTO[] getAll() {
+        return service.getAll().stream().map(this::map).toArray(ProductDTO[]::new);
+    }
+
+    private ProductDTO[] getFiltered(long[] ids) {
         final List<ProductDTO> products = new ArrayList<>();
 
-        for (long id : message.getProductId()) {
+        for (long id : ids) {
             final Optional<ProductEntity> product = service.find(id);
             product.ifPresent(entity -> products.add(map(entity)));
         }
 
-        sender.sendResponse(message, new ProductsResponseMessage(products.toArray(new ProductDTO[0])));
+        return products.toArray(new ProductDTO[0]);
     }
 
     private ProductDTO map(ProductEntity entity) {

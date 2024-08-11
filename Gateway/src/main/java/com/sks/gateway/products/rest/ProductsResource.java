@@ -21,7 +21,8 @@ public class ProductsResource {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ProductDTO[] getAllProducts() {
-        return null;
+        final ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage());
+        return response.getProducts();
     }
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
