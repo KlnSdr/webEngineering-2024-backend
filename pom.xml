@@ -18,5 +18,6 @@
     <module>BaseApi</module>
     <module>Products</module>
     <module>Recipes</module>
+    <module>Surveys</module>
   </modules>
 </project>
