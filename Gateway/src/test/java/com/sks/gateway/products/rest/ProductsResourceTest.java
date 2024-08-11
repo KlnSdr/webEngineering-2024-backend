@@ -79,4 +79,20 @@ public class ProductsResourceTest {
 
         assertEquals("Products not found", exception.getReason());
     }
+
+    @Test
+    public void testGetAll() {
+        ProductDTO product1 = new ProductDTO(1, "Freedom", "baldEagle per oil barrel");
+        ProductDTO product2 = new ProductDTO(2, "Freedom of press", "Journalists per prison cell");
+        ProductsResponseMessage responseMessage = new ProductsResponseMessage(new ProductDTO[] {product1, product2});
+
+        when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
+
+        ProductDTO[] results = controller.getAllProducts();
+
+        assertNotNull(results);
+        assertEquals(2, results.length);
+        assertEquals(product1.getId(), results[0].getId());
+        assertEquals(product2.getId(), results[1].getId());
+    }
 }
