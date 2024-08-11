@@ -8,10 +8,10 @@ public class UsersEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "users_id")
+    @Column(name = "user_id")
     private Long id;
-    @Column(name = "users_name")
-    private String name;
+    @Column(name = "idp_hash")
+    private String idpHash;
 
     // Getters and Setters
     public Long getId() {
@@ -22,11 +22,11 @@ public class UsersEntity {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getIdpHash() {
+        return idpHash;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setIdpHash(String hash) {
+        this.idpHash = idpHash;
     }
 }
