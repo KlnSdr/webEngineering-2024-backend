@@ -84,6 +84,33 @@ services:
       MYSQL_ROOT_PASSWORD: secret
     networks:
       - web_net
+  # SURVEY_SERVICE ===============================================
+  surveys_service:
+    build:
+      context: .
+      dockerfile: Surveys/service/Dockerfile
+    container_name: webEng_SurveysService
+    depends_on:
+      - rabbitmq
+      - surveys_service_db
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_DATASOURCE_URL: jdbc:mariadb://surveys_service_db:3306/surveys
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: secret
+    networks:
+      - web_net
+
+  # SURVEYS-SERVICE-DATABASE ======================================
+  surveys_service_db:
+    image: mariadb:10.3
+    container_name: webEng_SurveysService_DB
+    volumes:
+      - ./Surveys/service/db:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+    networks:
+      - web_net
 
 # NETWORKS =====================================================
 networks:
