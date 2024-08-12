@@ -21,7 +21,6 @@ services:
     container_name: webEng_Gateway
     depends_on:
       - rabbitmq
-      - demo_service
       - products_service
     ports:
       - "13000:13000"
