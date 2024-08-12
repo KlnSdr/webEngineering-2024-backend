@@ -39,11 +39,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.sks.demo</groupId>
-            <artifactId>demo-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>com.sks.products</groupId>
             <artifactId>products-api</artifactId>
             <version>1.0-SNAPSHOT</version>
