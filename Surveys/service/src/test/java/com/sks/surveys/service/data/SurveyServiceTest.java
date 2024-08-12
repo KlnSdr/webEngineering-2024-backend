@@ -33,7 +33,7 @@ public class SurveyServiceTest {
         List<SurveyEntity> result = surveyService.getAll();
 
         assertEquals(1, result.size());
-        assertEquals(survey, result.get(0));
+        assertEquals(survey, result.getFirst());
     }
 
     @Test

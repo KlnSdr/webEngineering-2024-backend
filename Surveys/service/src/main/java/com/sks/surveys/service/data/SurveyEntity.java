@@ -2,8 +2,8 @@ package com.sks.surveys.service.data;
 
 import jakarta.persistence.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "surveys_entity_table")
@@ -14,13 +14,18 @@ public class SurveyEntity {
     private Long id;
 
     @Column(name = "owner_uri")
-    private String ownerUri;  // User URI as a string
+    private String ownerUri;
 
-    @ElementCollection
-    @CollectionTable(name = "survey_recipe_votes", joinColumns = @JoinColumn(name = "survey_id"))
-    @MapKeyColumn(name = "recipe_uri")
-    @Column(name = "yes_votes")
-    private Map<String, Integer> recipeYesVotes = new HashMap<>();  // Map of Recipe URIs to yesVotes
+    @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<SurveyVote> votes = new HashSet<>();
+
+    public Set<SurveyVote> getVotes() {
+        return votes;
+    }
+
+    public void setVotes(Set<SurveyVote> votes) {
+        this.votes = votes;
+    }
 
     public String getOwnerUri() {
         return ownerUri;
@@ -28,14 +33,6 @@ public class SurveyEntity {
 
     public void setOwnerUri(String ownerUri) {
         this.ownerUri = ownerUri;
-    }
-
-    public Map<String, Integer> getRecipeYesVotes() {
-        return recipeYesVotes;
-    }
-
-    public void setRecipeYesVotes(Map<String, Integer> recipeYesVotes) {
-        this.recipeYesVotes = recipeYesVotes;
     }
 
     // Getters and Setters
