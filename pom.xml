@@ -20,5 +20,6 @@
     <module>Recipes</module>
     <module>Users</module>
     <module>Surveys</module>
+    <module>Fridge</module>
   </modules>
 </project>
