@@ -78,4 +78,10 @@ public class FridgesResourceTest {
         assertEquals("Product with id 1 not found", exception.getReason());
     }
 
+    @Test
+    public void testDeleteFridgeItem_Success() {
+
+        assertDoesNotThrow(() -> controller.deleteFridgeItem(1L, 1L));
+    }
+
 }
