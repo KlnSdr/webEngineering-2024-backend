@@ -64,4 +64,18 @@ public class FridgesResourceTest {
         assertEquals(product2.getId(), results.get(1).getId());
     }
 
+    @Test
+    public void testAddOrUpdateFridgeItems_NotFound() {
+        ProductsResponseMessage responseMessage = new ProductsResponseMessage(null);
+        when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
+
+        List<FridgeAddItemDTO> items = List.of(new FridgeAddItemDTO(1, 2.5));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.addOrUpdateFridgeItems(1L, items);
+        });
+
+        assertEquals("Product with id 1 not found", exception.getReason());
+    }
+
 }
