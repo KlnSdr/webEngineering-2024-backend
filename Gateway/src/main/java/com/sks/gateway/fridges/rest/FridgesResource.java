@@ -26,4 +26,13 @@ public class FridgesResource {
 
     }
 
+    //Delete product from fridge
+    @DeleteMapping("/{userId}/{productId}")
+    public ResponseEntity<Void> deleteFridgeItem(
+            @PathVariable("userId") long userId,
+            @PathVariable("productId") long productId) {
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
 }
