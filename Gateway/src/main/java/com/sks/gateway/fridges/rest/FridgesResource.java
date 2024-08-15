@@ -33,6 +33,31 @@ public class FridgesResource {
 
     }
 
+    //Add a new product to fridge or update an existing
+    @PutMapping("/{userId}")
+    @ResponseBody
+    public List<FridgeItemDTO> addOrUpdateFridgeItems(
+            @PathVariable("userId") long userId,
+            @RequestBody List<FridgeAddItemDTO> items) {
+
+        List<FridgeItemDTO> fridgeItems = new ArrayList<>();
+        long[] ids = items.stream().mapToLong(FridgeAddItemDTO::getID).toArray();
+        ProductDTO[] products = getProductsByIds(ids);
+
+        for (int i = 0; i < items.size(); i++) {
+            FridgeAddItemDTO item = items.get(i);
+            ProductDTO product = products[i];
+
+            if (product == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product with id " + item.getID() + " not found");
+            }
+
+            fridgeItems.add(new FridgeItemDTO(product.getName(), product.getId(), product.getUnit(),item.getQuantity()));
+        }
+
+        return fridgeItems;
+    }
+
     //Delete product from fridge
     @DeleteMapping("/{userId}/{productId}")
     public ResponseEntity<Void> deleteFridgeItem(
