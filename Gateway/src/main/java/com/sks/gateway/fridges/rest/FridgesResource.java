@@ -42,4 +42,21 @@ public class FridgesResource {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    private ProductDTO[] getProductsByIds(long[] ids) {
+        ProductDTO[] products = new ProductDTO[ids.length];
+
+        for (int i = 0; i < ids.length; i++) {
+            ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage(ids[i]));
+            ProductDTO product = response.getProduct();
+
+            if (product == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product with id " + ids[i] + " not found");
+            }
+
+            products[i] = product;
+        }
+
+        return products;
+    }
+
 }
