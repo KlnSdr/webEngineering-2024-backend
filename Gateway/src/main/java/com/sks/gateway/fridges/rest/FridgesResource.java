@@ -17,6 +17,13 @@ import java.util.*;
 @RequestMapping("/fridges")
 public class FridgesResource {
 
+    //Integrating the ProductsSender for communicating with the product service
+    private final ProductsSender productsSender;
+
+    public FridgesResource(ProductsSender productsSender) {
+        this.productsSender = productsSender;
+    }
+
     //Get information of fridge items
     @GetMapping("/{userId}")
     @ResponseBody
