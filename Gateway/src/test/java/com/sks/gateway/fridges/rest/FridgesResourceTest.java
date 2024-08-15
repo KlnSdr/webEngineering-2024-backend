@@ -29,5 +29,14 @@ public class FridgesResourceTest {
         sender = mock(ProductsSender.class);
         controller = new FridgesResource(sender);
     }
-    
+
+    @Test
+    public void testGetFridgeItems_Success() {
+        List<FridgeItemDTO> result = controller.getFridgeItems(1L);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("Milk", result.get(0).getName());
+    }
+
 }
