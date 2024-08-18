@@ -19,10 +19,10 @@ public class RecipeService {
         return recipeRepository.findAll();
     }
 
-    public List<RecipeEntity> findRecipesByName(String searchString) {
+    public List<RecipeEntity> findByName(String searchString) {
         return recipeRepository.findByTitleContainingIgnoreCase(searchString);
     }
-    public List<RecipeEntity> findRecipesByProducts(List<String> productUris) {
+    public List<RecipeEntity> findByProducts(List<String> productUris) {
         return recipeRepository.findByProductUrisIn(Collections.singleton(productUris));
     }
 

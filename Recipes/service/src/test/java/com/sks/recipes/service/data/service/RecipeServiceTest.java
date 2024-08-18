@@ -68,7 +68,7 @@ public class RecipeServiceTest {
 
         when(recipeRepository.findByTitleContainingIgnoreCase("Käse")).thenReturn(List.of(recipe1, recipe3));
 
-        List<RecipeEntity> result = recipeService.findRecipesByName("Käse");
+        List<RecipeEntity> result = recipeService.findByName("Käse");
 
         assertEquals(2, result.size());
         assertEquals(recipe1, result.get(0));
@@ -79,7 +79,7 @@ public class RecipeServiceTest {
     void findRecipesByNameReturnsEmptyListWhenNoRecipes() {
         when(recipeRepository.findByTitleContainingIgnoreCase("Käse")).thenReturn(Collections.emptyList());
 
-        List<RecipeEntity> result = recipeService.findRecipesByName("Käse");
+        List<RecipeEntity> result = recipeService.findByName("Käse");
 
         assertEquals(0, result.size());
     }
@@ -87,15 +87,15 @@ public class RecipeServiceTest {
     @Test
     void findRecipesByOneProduct() {
         RecipeEntity recipe1 =  new RecipeEntity();
-        recipe1.setProductUris(List.of("Käse", "Sauerteig"));
+        recipe1.setProductUris(List.of("/product/42", "/product/41"));
         RecipeEntity recipe2 =  new RecipeEntity();
-        recipe2.setProductUris(List.of("Apfel", "Sauerteig"));
+        recipe2.setProductUris(List.of("/product/40", "/product/41"));
         RecipeEntity recipe3 =  new RecipeEntity();
-        recipe3.setProductUris(List.of("Käse", "Milch"));
+        recipe3.setProductUris(List.of("/product/42", "/product/43"));
 
-        when(recipeRepository.findByProductUrisIn(Collections.singleton(List.of("Käse")))).thenReturn(List.of(recipe1, recipe3));
+        when(recipeRepository.findByProductUrisIn(Collections.singleton(List.of("/product/42")))).thenReturn(List.of(recipe1, recipe3));
 
-        List<RecipeEntity> result = recipeService.findRecipesByProducts(List.of("Käse"));
+        List<RecipeEntity> result = recipeService.findByProducts(List.of("/product/42"));
 
         assertEquals(2, result.size());
         assertEquals(recipe1, result.get(0));
@@ -104,9 +104,9 @@ public class RecipeServiceTest {
 
     @Test
     void findRecipesByProductsReturnsEmptyListWhenNoRecipes() {
-        when(recipeRepository.findByProductUrisIn(Collections.singleton(List.of("Käse")))).thenReturn(Collections.emptyList());
+        when(recipeRepository.findByProductUrisIn(Collections.singleton(List.of("/product/42")))).thenReturn(Collections.emptyList());
 
-        List<RecipeEntity> result = recipeService.findRecipesByProducts(List.of("Käse"));
+        List<RecipeEntity> result = recipeService.findByProducts(List.of("/product/42"));
 
         assertEquals(0, result.size());
     }
@@ -114,17 +114,29 @@ public class RecipeServiceTest {
     @Test
     void findRecipesByMultipleProducts() {
         RecipeEntity recipe1 =  new RecipeEntity();
-        recipe1.setProductUris(List.of("Käse", "Sauerteig"));
+        recipe1.setProductUris(List.of("/product/42", "/product/41"));
         RecipeEntity recipe2 =  new RecipeEntity();
-        recipe2.setProductUris(List.of("Apfel", "Sauerteig"));
+        recipe2.setProductUris(List.of("/product/40", "/product/41"));
         RecipeEntity recipe3 =  new RecipeEntity();
-        recipe3.setProductUris(List.of("Käse", "Milch"));
+        recipe3.setProductUris(List.of("/product/42", "/product/43"));
 
-        when(recipeRepository.findByProductUrisIn(Collections.singleton(List.of("Käse", "Sauerteig")))).thenReturn(List.of(recipe1));
+        when(recipeRepository.findByProductUrisIn(Collections.singleton(List.of("/product/42", "/product/41")))).thenReturn(List.of(recipe1));
 
-        List<RecipeEntity> result = recipeService.findRecipesByProducts(List.of("Käse", "Sauerteig"));
+        List<RecipeEntity> result = recipeService.findByProducts(List.of("/product/42", "/product/41"));
 
         assertEquals(1, result.size());
         assertEquals(recipe1, result.get(0));
+    }
+    @Test
+    void dontfindRecipesMissingProducts() {
+        RecipeEntity recipe1 = new RecipeEntity();
+        recipe1.setProductUris(List.of("/product/42", "/product/41", "/product/40", "/product/43", "/product/44"));
+        when(recipeRepository.findByProductUrisIn(Collections.singleton(List.of("/product/42", "/product/41", "/product/40", "/product/43","/product/44")))).thenReturn(List.of(recipe1));
+
+        List<RecipeEntity> result = recipeService.findByProducts(List.of("/product/42", "/product/41", "/product/40", "/product/43"));
+
+        assertEquals(0, result.size());
+
+
     }
 }
