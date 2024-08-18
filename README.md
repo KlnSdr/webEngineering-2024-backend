@@ -30,3 +30,14 @@ To clean build all modules use:
 ```bash
 mvn clean install
 ```
+
+### login to a specific containers bash
+list all running containers
+```bash
+docker ps
+```
+
+execute `/bin/bash` in the container
+```bash
+docker exec -it <id> bash
+```
