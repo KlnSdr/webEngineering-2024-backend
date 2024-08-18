@@ -9,14 +9,15 @@ import com.sks.products.api.ProductsSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import java.util.List;
 
 public class FridgesResourceTest {
 
@@ -44,12 +45,9 @@ public class FridgesResourceTest {
         ProductDTO product1 = new ProductDTO(1, "Milk", "liters");
         ProductDTO product2 = new ProductDTO(2, "Flour", "kg");
 
-        ProductsResponseMessage responseMessage1 = new ProductsResponseMessage(product1);
-        ProductsResponseMessage responseMessage2 = new ProductsResponseMessage(product2);
+        ProductsResponseMessage responseMessage = new ProductsResponseMessage(new ProductDTO[]{product1, product2});
 
-        when(sender.sendRequest(any(ProductsRequestMessage.class)))
-                .thenReturn(responseMessage1)
-                .thenReturn(responseMessage2);
+        when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
 
         List<FridgeAddItemDTO> items = List.of(
                 new FridgeAddItemDTO(1, 2.5),
@@ -66,7 +64,7 @@ public class FridgesResourceTest {
 
     @Test
     public void testAddOrUpdateFridgeItems_NotFound() {
-        ProductsResponseMessage responseMessage = new ProductsResponseMessage(null);
+        ProductsResponseMessage responseMessage = new ProductsResponseMessage(new ProductDTO[]{null});
         when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
 
         List<FridgeAddItemDTO> items = List.of(new FridgeAddItemDTO(1, 2.5));
@@ -75,6 +73,7 @@ public class FridgesResourceTest {
             controller.addOrUpdateFridgeItems(1L, items);
         });
 
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         assertEquals("Product with id 1 not found", exception.getReason());
     }
 
@@ -83,5 +82,5 @@ public class FridgesResourceTest {
 
         assertDoesNotThrow(() -> controller.deleteFridgeItem(1L, 1L));
     }
-
+    
 }
