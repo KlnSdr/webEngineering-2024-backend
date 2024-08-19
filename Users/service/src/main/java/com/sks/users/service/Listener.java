@@ -34,14 +34,14 @@ public class Listener implements UsersListener {
     }
 
     private UsersResponseMessage handleCreate(UsersRequestMessage message) {
-        final Optional<UsersEntity> user = service.findByIdpHash(message.getIdpUserId());
+        final Optional<UsersEntity> user = service.findByIdpHash(service.hashId(message.getIdpUserId()));
         final UsersResponseMessage response = new UsersResponseMessage();
         if (user.isPresent()) {
             response.setUser(map(user.get()));
         } else {
             final UsersEntity newUser = new UsersEntity();
             newUser.setDisplayName(message.getUserName());
-            newUser.setIdpHash(message.getIdpUserId().toString()); // TODO hash the id
+            newUser.setIdpHash(service.hashId(message.getIdpUserId()));
             final UsersEntity savedUser = service.save(newUser);
             response.setUser(map(savedUser));
         }

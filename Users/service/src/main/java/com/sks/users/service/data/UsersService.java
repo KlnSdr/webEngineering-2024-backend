@@ -1,5 +1,6 @@
 package com.sks.users.service.data;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,8 +26,11 @@ public class UsersService {
         return usersRepository.findById(id);
     }
 
-    public Optional<UsersEntity> findByIdpHash(Long id) {
-        // TODO hash the id
-        return usersRepository.findByIdpHashEquals(id.toString());
+    public Optional<UsersEntity> findByIdpHash(String hash) {
+        return usersRepository.findByIdpHashEquals(hash);
+    }
+
+    public String hashId(Long id) {
+        return DigestUtils.sha256Hex(id.toString());
     }
 }
