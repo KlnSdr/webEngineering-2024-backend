@@ -1,5 +1,6 @@
 package com.sks.gateway;
 
+import com.sks.gateway.users.OAuthHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @ComponentScan("com.sks")
 @EnableWebSecurity
 public class GatewayConfig implements WebMvcConfigurer {
+    private final OAuthHandler oAuthHandler;
+
+    public GatewayConfig(OAuthHandler oAuthHandler) {
+        this.oAuthHandler = oAuthHandler;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -27,7 +34,8 @@ public class GatewayConfig implements WebMvcConfigurer {
                         .anyRequest().permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("http://localhost:3000", true)
+                        .successHandler(oAuthHandler)
+//                        .defaultSuccessUrl("http://localhost:3000", true)
                         .failureUrl("/login?error=true")
                 ).logout(logout -> logout
                         .logoutRequestMatcher(new AntPathRequestMatcher("/users/logout", "GET"))

@@ -37,6 +37,6 @@ public class UsersEntity {
     }
 
     public void setIdpHash(String hash) {
-        this.idpHash = idpHash;
+        this.idpHash = hash;
     }
 }

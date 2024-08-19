@@ -3,20 +3,16 @@ package com.sks.users.api;
 import com.sks.base.api.BaseMessage;
 
 public class UsersResponseMessage extends BaseMessage {
-    private String message;
+    UserDTO user = null;
 
     public UsersResponseMessage() {
     }
 
-    public UsersResponseMessage(String message) {
-        this.message = message;
+    public UserDTO getUser() {
+        return user;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
+    public void setUser(UserDTO user) {
+        this.user = user;
     }
 }
