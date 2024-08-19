@@ -3,15 +3,12 @@ package com.sks.users.service;
 import com.sks.users.api.*;
 import com.sks.users.service.data.UsersEntity;
 import com.sks.users.service.data.UsersService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 @Component
 public class Listener implements UsersListener {
-    private final Logger logger = LoggerFactory.getLogger(Listener.class);
     private final UsersService service;
     private final UsersSender sender;
 
@@ -37,14 +34,11 @@ public class Listener implements UsersListener {
     }
 
     private UsersResponseMessage handleCreate(UsersRequestMessage message) {
-        System.out.println("Creating new user: " + message.getUserName());
-        System.out.println("Creating new user: " + message.getIdpUserId());
         final Optional<UsersEntity> user = service.findByIdpHash(message.getIdpUserId());
         final UsersResponseMessage response = new UsersResponseMessage();
         if (user.isPresent()) {
             response.setUser(map(user.get()));
         } else {
-            logger.info("Creating new user: {}", message.getUserName());
             final UsersEntity newUser = new UsersEntity();
             newUser.setDisplayName(message.getUserName());
             newUser.setIdpHash(message.getIdpUserId().toString()); // TODO hash the id

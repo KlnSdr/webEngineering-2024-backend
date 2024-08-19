@@ -28,9 +28,6 @@ public class OAuthHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        System.out.println((Integer) oAuth2User.getAttribute("id"));
-        System.out.println((String) oAuth2User.getAttribute("username"));
-
         final UsersResponseMessage userResponse = usersSender.sendRequest(UsersRequestMessage.createUser(
                 (String) oAuth2User.getAttribute("username"),
                 ((Integer) Objects.requireNonNull(oAuth2User.getAttribute("id"))).longValue()
