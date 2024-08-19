@@ -1,8 +1,12 @@
 package com.sks.gateway.recipes.rest;
 
+import com.sks.gateway.products.rest.ProductsResource;
 import com.sks.gateway.recipes.dto.RecipeDTO;
+import com.sks.products.api.ProductsSender;
+import com.sks.recipes.api.RecipeSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import java.util.List;
 
@@ -11,11 +15,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class RecipeSearchTest {
 
+    @Mock
+    private RecipeSender sender;
     private SearchResource controller;
 
     @BeforeEach
     public void setUp() {
-        controller = new SearchResource();
+        controller = new SearchResource(sender);
     }
 
     @Test

@@ -3,7 +3,7 @@ package com.sks.gateway.recipes.dto;
 import java.util.Date;
 
 public class RecipeDTO {
-    private int id;
+    private long id;
     private String title;
     private String imgUri;
     private String description;
@@ -13,7 +13,7 @@ public class RecipeDTO {
     public RecipeDTO() {
     }
 
-    public RecipeDTO(int id, String title, String imgUri, String description, Date creationDate, String ownerUri) {
+    public RecipeDTO(long id, String title, String imgUri, String description, Date creationDate, String ownerUri) {
         this.id = id;
         this.title = title;
         this.imgUri = imgUri;
@@ -22,7 +22,7 @@ public class RecipeDTO {
         this.ownerUri = ownerUri;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 

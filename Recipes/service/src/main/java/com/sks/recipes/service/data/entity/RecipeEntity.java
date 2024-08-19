@@ -120,4 +120,5 @@ public class RecipeEntity {
     public void setId(Long id) {
         this.id = id;
     }
+
 }
