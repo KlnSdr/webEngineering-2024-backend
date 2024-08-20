@@ -40,6 +40,22 @@ public class RecipeEntity {
     @Column(name = "QUANTITY")
     private Map<String, Integer> productQuantities;
 
+    public RecipeEntity() {
+    }
+
+    public RecipeEntity( long id,String title, String description, String imageUri, boolean isPrivate, Timestamp creationDate, String ownerUri, List<String> likedByUserUris, List<String> productUris, Map<String, Integer> productQuantities) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.imageUri = imageUri;
+        this.isPrivate = isPrivate;
+        this.creationDate = creationDate;
+        this.ownerUri = ownerUri;
+        this.likedByUserUris = likedByUserUris;
+        this.productUris = productUris;
+        this.productQuantities = productQuantities;
+    }
+
     public List<String> getLikedByUserUris() {
         return likedByUserUris;
     }
@@ -112,7 +128,6 @@ public class RecipeEntity {
         this.creationDate = creationDate;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }

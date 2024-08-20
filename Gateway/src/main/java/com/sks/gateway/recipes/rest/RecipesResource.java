@@ -1,7 +1,7 @@
 package com.sks.gateway.recipes.rest;
 
-import com.sks.gateway.recipes.dto.CreateRecipeDTO;
-import com.sks.gateway.recipes.dto.RecipeDTO;
+import com.sks.recipes.api.dto.CreateRecipeDTO;
+import com.sks.recipes.api.dto.RecipeDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

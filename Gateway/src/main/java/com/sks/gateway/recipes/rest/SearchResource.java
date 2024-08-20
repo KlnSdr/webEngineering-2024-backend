@@ -1,6 +1,6 @@
 package com.sks.gateway.recipes.rest;
 
-import com.sks.gateway.recipes.dto.RecipeDTO;
+import com.sks.recipes.api.dto.RecipeDTO;
 import com.sks.recipes.api.RecipeRequestMessage;
 import com.sks.recipes.api.RecipeResponseMessage;
 import com.sks.recipes.api.RecipeSender;
@@ -10,9 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 @RestController

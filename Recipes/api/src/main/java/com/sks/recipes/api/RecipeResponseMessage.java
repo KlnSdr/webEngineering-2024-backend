@@ -1,7 +1,7 @@
 package com.sks.recipes.api;
 
 import com.sks.base.api.BaseMessage;
-import com.sks.gateway.recipes.dto.RecipeDTO;
+import com.sks.recipes.api.dto.RecipeDTO;
 
 import java.util.List;
 

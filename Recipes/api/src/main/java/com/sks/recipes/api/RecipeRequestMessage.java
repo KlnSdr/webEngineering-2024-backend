@@ -1,12 +1,15 @@
 package com.sks.recipes.api;
 
 import com.sks.base.api.BaseMessage;
-import com.sks.gateway.recipes.dto.RecipeDTO;
+import com.sks.recipes.api.dto.RecipeDTO;
+
+import java.util.List;
+
 
 public class RecipeRequestMessage extends BaseMessage {
     private String message;
     private String[] products = new String[0];
-    private RecipeDTO[] recipes = new RecipeDTO[0];
+    private List<RecipeDTO> recipes;
     private RecipeRequestType requestType;
 
     public RecipeRequestMessage() {
@@ -39,11 +42,11 @@ public class RecipeRequestMessage extends BaseMessage {
         this.products = products;
     }
 
-    public RecipeDTO[] getRecipes() {
+    public List<RecipeDTO> getRecipes() {
         return recipes;
     }
 
-    public void setRecipes(RecipeDTO[] recipes) {
+    public void setRecipes(List<RecipeDTO> recipes) {
         this.recipes = recipes;
     }
 

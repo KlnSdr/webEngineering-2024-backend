@@ -1,4 +1,4 @@
-package com.sks.gateway.recipes.dto;
+package com.sks.recipes.api.dto;
 
 public class CreateRecipeDTO {
     private String title;

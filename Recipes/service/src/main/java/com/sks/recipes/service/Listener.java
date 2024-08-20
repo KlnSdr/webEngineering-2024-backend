@@ -1,6 +1,6 @@
 package com.sks.recipes.service;
 
-import com.sks.gateway.recipes.dto.RecipeDTO;
+import com.sks.recipes.api.dto.RecipeDTO;
 import com.sks.recipes.api.*;
 
 import com.sks.recipes.service.data.entity.RecipeEntity;
@@ -8,9 +8,6 @@ import com.sks.recipes.service.data.service.RecipeService;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-
-import static com.sks.recipes.api.RecipeRequestType.ByName;
-import static com.sks.recipes.api.RecipeRequestType.ByPRODUCT;
 
 
 @Component
@@ -42,6 +39,6 @@ public class Listener implements RecipesListener {
     }
 
     private RecipeDTO map(RecipeEntity recipeEntity) {
-        return new RecipeDTO(recipeEntity.getId(), recipeEntity.getTitle(), recipeEntity.getImageUri(), recipeEntity.getDescription(), recipeEntity.getCreationDate(), recipeEntity.getOwnerUri());
+        return new RecipeDTO(recipeEntity.getId(), recipeEntity.getTitle(), recipeEntity.getDescription(), recipeEntity.getImageUri(), recipeEntity.isPrivate(), recipeEntity.getCreationDate(), recipeEntity.getOwnerUri(), recipeEntity.getLikedByUserUris(),recipeEntity.getProductUris(), recipeEntity.getProductQuantities());
     }
 }
