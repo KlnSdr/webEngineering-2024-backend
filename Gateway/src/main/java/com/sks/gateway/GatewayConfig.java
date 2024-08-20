@@ -1,6 +1,7 @@
 package com.sks.gateway;
 
 import com.sks.gateway.users.OAuthHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @ComponentScan("com.sks")
 @EnableWebSecurity
 public class GatewayConfig implements WebMvcConfigurer {
+    @Value("${app.oauth2.successRedirectUrl}")
+    private String oauthSuccessRedirectUrl;
+
+    @Value("${app.oauth2.failRedirectUrl}")
+    private String oauthFailureRedirectUrl;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
     private final OAuthHandler oAuthHandler;
 
     public GatewayConfig(OAuthHandler oAuthHandler) {
@@ -35,10 +45,10 @@ public class GatewayConfig implements WebMvcConfigurer {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuthHandler)
-                        .failureUrl("/login?error=true")
+                        .failureUrl(oauthFailureRedirectUrl)
                 ).logout(logout -> logout
                         .logoutRequestMatcher(new AntPathRequestMatcher("/users/logout", "GET"))
-                        .logoutSuccessUrl("http://localhost:3000")
+                        .logoutSuccessUrl(oauthSuccessRedirectUrl)
                         .clearAuthentication(true)
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
@@ -51,7 +61,7 @@ public class GatewayConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000")
+                .allowedOrigins(frontendUrl)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowCredentials(true);
     }
