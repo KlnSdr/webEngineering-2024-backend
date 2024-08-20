@@ -28,8 +28,8 @@ public class RecipesResourceTest {
         assertNotNull(response);
         assertEquals(id, response.getId());
         assertEquals("Flammkuchen", response.getTitle());
-        assertEquals("/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png", response.getImgUri());
         assertEquals("Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...", response.getDescription());
+        assertEquals("/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png", response.getImgUri());
         assertNotNull(response.getCreationDate());
         assertEquals("/users/42", response.getOwnerUri());
     }
@@ -46,8 +46,8 @@ public class RecipesResourceTest {
             assertNotNull(responses[i]);
             assertEquals(ids[i], responses[i].getId());
             assertEquals("Flammkuchen", responses[i].getTitle());
-            assertEquals("/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png", responses[i].getImgUri());
             assertEquals("Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...", responses[i].getDescription());
+            assertEquals("/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png", responses[i].getImgUri());
             assertNotNull(responses[i].getCreationDate());
             assertEquals("/users/42", responses[i].getOwnerUri());
         }
@@ -55,7 +55,7 @@ public class RecipesResourceTest {
 
     @Test
     public void testCreateRecipe() {
-        CreateRecipeDTO createRecipeDTO = new CreateRecipeDTO("Flammkuchen", "/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png", "Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...", "/users/42");
+        CreateRecipeDTO createRecipeDTO = new CreateRecipeDTO("Flammkuchen", "Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...","/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png", "/users/42");
         RecipeDTO response = controller.createRecipe(createRecipeDTO);
 
         assertNotNull(response);
@@ -70,7 +70,7 @@ public class RecipesResourceTest {
     @Test
     public void testUpdateRecipe() {
         int id = 1;
-        RecipeDTO updateRecipeDTO = new RecipeDTO(id, "Flammkuchen Updated", "/static/images/updated.png", "Updated Description", new Date(), "/users/42");
+        RecipeDTO updateRecipeDTO = new RecipeDTO(id, "Flammkuchen Updated", "Updated Description","/static/images/updated.png",new Date(), "/users/42");
         RecipeDTO response = controller.updateRecipe(id, updateRecipeDTO);
 
         assertNotNull(response);

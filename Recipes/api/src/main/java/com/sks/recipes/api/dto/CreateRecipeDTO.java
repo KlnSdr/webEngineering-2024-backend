@@ -9,10 +9,10 @@ public class CreateRecipeDTO {
     public CreateRecipeDTO() {
     }
 
-    public CreateRecipeDTO(String title, String imgUri, String description, String ownerUri) {
+    public CreateRecipeDTO(String title,String description, String imgUri, String ownerUri) {
         this.title = title;
-        this.imgUri = imgUri;
         this.description = description;
+        this.imgUri = imgUri;
         this.ownerUri = ownerUri;
     }
 
