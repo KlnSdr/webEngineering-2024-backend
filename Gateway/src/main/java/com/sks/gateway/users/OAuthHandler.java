@@ -16,10 +16,9 @@ import java.util.Objects;
 
 @Component
 public class OAuthHandler implements AuthenticationSuccessHandler {
+    private final UsersSender usersSender;
     @Value("${app.oauth2.successRedirectUrl}")
     private String redirectUrl;
-
-    private final UsersSender usersSender;
 
     public OAuthHandler(UsersSender usersSender) {
         this.usersSender = usersSender;
@@ -27,13 +26,17 @@ public class OAuthHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        final UsersResponseMessage userResponse = usersSender.sendRequest(UsersRequestMessage.createUser(
-                (String) oAuth2User.getAttribute("username"),
-                ((Integer) Objects.requireNonNull(oAuth2User.getAttribute("id"))).longValue()
-        ));
+        try {
+            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            final UsersResponseMessage _userResponse = usersSender.sendRequest(UsersRequestMessage.createUser(
+                    oAuth2User.getAttribute("username"),
+                    ((Integer) Objects.requireNonNull(oAuth2User.getAttribute("id"))).longValue()
+            ));
 
-        // Redirect to the desired URL after login
-        response.sendRedirect(redirectUrl);  // Adjust the redirect URL as needed
+            // Redirect to the desired URL after login
+            response.sendRedirect(redirectUrl);  // Adjust the redirect URL as needed
+        } catch (Exception e) {
+            response.sendRedirect("/login?error=true");  // Adjust the redirect URL as needed
+        }
     }
 }

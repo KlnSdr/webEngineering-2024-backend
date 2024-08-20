@@ -35,7 +35,6 @@ public class GatewayConfig implements WebMvcConfigurer {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuthHandler)
-//                        .defaultSuccessUrl("http://localhost:3000", true)
                         .failureUrl("/login?error=true")
                 ).logout(logout -> logout
                         .logoutRequestMatcher(new AntPathRequestMatcher("/users/logout", "GET"))
