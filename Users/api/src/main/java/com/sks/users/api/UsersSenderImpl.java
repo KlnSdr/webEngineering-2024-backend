@@ -23,7 +23,6 @@ public class UsersSenderImpl extends BaseSenderImpl<UsersRequestMessage, UsersRe
     @Override
     protected UsersResponseMessage createErrorResponse(String errorMessage) {
         UsersResponseMessage response = new UsersResponseMessage();
-        response.setMessage(errorMessage);
         return response;
     }
 }

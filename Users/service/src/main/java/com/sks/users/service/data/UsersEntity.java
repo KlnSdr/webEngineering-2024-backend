@@ -12,6 +12,16 @@ public class UsersEntity {
     private Long id;
     @Column(name = "idp_hash")
     private String idpHash;
+    @Column(name = "display_name")
+    private String displayName;
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
 
     // Getters and Setters
     public Long getId() {
@@ -27,6 +37,6 @@ public class UsersEntity {
     }
 
     public void setIdpHash(String hash) {
-        this.idpHash = idpHash;
+        this.idpHash = hash;
     }
 }
