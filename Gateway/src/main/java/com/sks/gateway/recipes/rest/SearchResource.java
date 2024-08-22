@@ -1,10 +1,9 @@
 package com.sks.gateway.recipes.rest;
 
-import com.sks.recipes.api.dto.RecipeDTO;
 import com.sks.recipes.api.RecipeRequestMessage;
 import com.sks.recipes.api.RecipeResponseMessage;
 import com.sks.recipes.api.RecipeSender;
-import jakarta.websocket.server.PathParam;
+import com.sks.recipes.api.dto.RecipeDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +22,7 @@ public class SearchResource {
     }
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public List<RecipeDTO> getAllRecipesBySearchString(@PathParam("searchString") String searchString) {
+    public List<RecipeDTO> getAllRecipesBySearchString(@RequestParam("searchString") String searchString) {
         final RecipeResponseMessage response = recipeSender.sendRequest(new RecipeRequestMessage(searchString));
         final List<RecipeDTO> recipes = response.getRecipes();
 

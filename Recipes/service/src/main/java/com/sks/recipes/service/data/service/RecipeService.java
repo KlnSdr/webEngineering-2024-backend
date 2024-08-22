@@ -4,7 +4,6 @@ import com.sks.recipes.service.data.entity.RecipeEntity;
 import com.sks.recipes.service.data.repo.RecipeRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -23,7 +22,7 @@ public class RecipeService {
         return recipeRepository.findByTitleContainingIgnoreCase(searchString);
     }
     public List<RecipeEntity> findByProducts(List<String> productUris) {
-        return recipeRepository.findByProductUrisIn(Collections.singleton(productUris));
+        return recipeRepository.findByProductUrisIn(productUris);
     }
 
     public RecipeEntity save(RecipeEntity recipeEntity) {

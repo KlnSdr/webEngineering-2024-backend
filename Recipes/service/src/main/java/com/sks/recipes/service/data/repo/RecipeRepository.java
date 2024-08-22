@@ -10,5 +10,5 @@ public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
 
     List<RecipeEntity> findByTitleContainingIgnoreCase(String searchString);
 
-    List<RecipeEntity> findByProductUrisIn(Collection<List<String>> productUris);
+    List<RecipeEntity> findByProductUrisIn(Collection<String> productUris);
 }

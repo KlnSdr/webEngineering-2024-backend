@@ -26,15 +26,15 @@ public class RecipeEntity {
     private Timestamp creationDate;
     @Column(name = "RECIPE_OWNER_URI")
     private String ownerUri;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "recipe_likes", joinColumns = @JoinColumn(name = "RECIPE_ID"))
     @Column(name = "USER_URI")
     private List<String> likedByUserUris;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "recipe_products", joinColumns = @JoinColumn(name = "RECIPE_ID"))
     @Column(name = "PRODUCT_URI")
     private List<String> productUris;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "recipe_product_quantities", joinColumns = @JoinColumn(name = "RECIPE_ID"))
     @MapKeyColumn(name = "PRODUCT_URI")
     @Column(name = "QUANTITY")
