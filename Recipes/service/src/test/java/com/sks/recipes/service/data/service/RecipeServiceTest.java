@@ -93,7 +93,7 @@ public class RecipeServiceTest {
         RecipeEntity recipe3 =  new RecipeEntity();
         recipe3.setProductUris(List.of("/product/42", "/product/43"));
 
-        when(recipeRepository.findByProductUrisIn(Collections.singleton(List.of("/product/42")))).thenReturn(List.of(recipe1, recipe3));
+        when(recipeRepository.findByProductUrisIn(List.of("/product/42"))).thenReturn(List.of(recipe1, recipe3));
 
         List<RecipeEntity> result = recipeService.findByProducts(List.of("/product/42"));
 
@@ -104,7 +104,7 @@ public class RecipeServiceTest {
 
     @Test
     void findRecipesByProductsReturnsEmptyListWhenNoRecipes() {
-        when(recipeRepository.findByProductUrisIn(Collections.singleton(List.of("/product/42")))).thenReturn(Collections.emptyList());
+        when(recipeRepository.findByProductUrisIn(List.of("/product/42"))).thenReturn(Collections.emptyList());
 
         List<RecipeEntity> result = recipeService.findByProducts(List.of("/product/42"));
 
@@ -120,7 +120,7 @@ public class RecipeServiceTest {
         RecipeEntity recipe3 =  new RecipeEntity();
         recipe3.setProductUris(List.of("/product/42", "/product/43"));
 
-        when(recipeRepository.findByProductUrisIn(Collections.singleton(List.of("/product/42", "/product/41")))).thenReturn(List.of(recipe1));
+        when(recipeRepository.findByProductUrisIn(List.of("/product/42", "/product/41"))).thenReturn(List.of(recipe1));
 
         List<RecipeEntity> result = recipeService.findByProducts(List.of("/product/42", "/product/41"));
 
@@ -131,7 +131,7 @@ public class RecipeServiceTest {
     void dontfindRecipesMissingProducts() {
         RecipeEntity recipe1 = new RecipeEntity();
         recipe1.setProductUris(List.of("/product/42", "/product/41", "/product/40", "/product/43", "/product/44"));
-        when(recipeRepository.findByProductUrisIn(Collections.singleton(List.of("/product/42", "/product/41", "/product/40", "/product/43","/product/44")))).thenReturn(List.of(recipe1));
+        when(recipeRepository.findByProductUrisIn(List.of("/product/42", "/product/41", "/product/40", "/product/43","/product/44"))).thenReturn(List.of(recipe1));
 
         List<RecipeEntity> result = recipeService.findByProducts(List.of("/product/42", "/product/41", "/product/40", "/product/43"));
 
