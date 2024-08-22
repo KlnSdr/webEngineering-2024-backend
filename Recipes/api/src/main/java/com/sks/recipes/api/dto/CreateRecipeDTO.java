@@ -1,33 +1,19 @@
-package com.sks.gateway.recipes.dto;
+package com.sks.recipes.api.dto;
 
-import java.util.Date;
-
-public class RecipeDTO {
-    private int id;
+public class CreateRecipeDTO {
     private String title;
     private String imgUri;
     private String description;
-    private Date creationDate;
     private String ownerUri;
 
-    public RecipeDTO() {
+    public CreateRecipeDTO() {
     }
 
-    public RecipeDTO(int id, String title, String imgUri, String description, Date creationDate, String ownerUri) {
-        this.id = id;
+    public CreateRecipeDTO(String title,String description, String imgUri, String ownerUri) {
         this.title = title;
-        this.imgUri = imgUri;
         this.description = description;
-        this.creationDate = creationDate;
+        this.imgUri = imgUri;
         this.ownerUri = ownerUri;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getTitle() {
@@ -52,14 +38,6 @@ public class RecipeDTO {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Date getCreationDate() {
-        return creationDate;
-    }
-
-    public void setCreationDate(Date creationDate) {
-        this.creationDate = creationDate;
     }
 
     public String getOwnerUri() {

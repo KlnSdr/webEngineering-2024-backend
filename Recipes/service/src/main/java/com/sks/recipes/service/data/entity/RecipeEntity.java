@@ -26,19 +26,35 @@ public class RecipeEntity {
     private Timestamp creationDate;
     @Column(name = "RECIPE_OWNER_URI")
     private String ownerUri;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "recipe_likes", joinColumns = @JoinColumn(name = "RECIPE_ID"))
     @Column(name = "USER_URI")
     private List<String> likedByUserUris;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "recipe_products", joinColumns = @JoinColumn(name = "RECIPE_ID"))
     @Column(name = "PRODUCT_URI")
     private List<String> productUris;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "recipe_product_quantities", joinColumns = @JoinColumn(name = "RECIPE_ID"))
     @MapKeyColumn(name = "PRODUCT_URI")
     @Column(name = "QUANTITY")
     private Map<String, Integer> productQuantities;
+
+    public RecipeEntity() {
+    }
+
+    public RecipeEntity( long id,String title, String description, String imageUri, boolean isPrivate, Timestamp creationDate, String ownerUri, List<String> likedByUserUris, List<String> productUris, Map<String, Integer> productQuantities) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.imageUri = imageUri;
+        this.isPrivate = isPrivate;
+        this.creationDate = creationDate;
+        this.ownerUri = ownerUri;
+        this.likedByUserUris = likedByUserUris;
+        this.productUris = productUris;
+        this.productQuantities = productQuantities;
+    }
 
     public List<String> getLikedByUserUris() {
         return likedByUserUris;
@@ -112,7 +128,6 @@ public class RecipeEntity {
         this.creationDate = creationDate;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -120,4 +135,5 @@ public class RecipeEntity {
     public void setId(Long id) {
         this.id = id;
     }
+
 }

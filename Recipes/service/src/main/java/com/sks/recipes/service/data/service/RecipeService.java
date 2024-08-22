@@ -18,6 +18,13 @@ public class RecipeService {
         return recipeRepository.findAll();
     }
 
+    public List<RecipeEntity> findByName(String searchString) {
+        return recipeRepository.findByTitleContainingIgnoreCase(searchString);
+    }
+    public List<RecipeEntity> findByProducts(List<String> productUris) {
+        return recipeRepository.findByProductUrisIn(productUris);
+    }
+
     public RecipeEntity save(RecipeEntity recipeEntity) {
         return recipeRepository.save(recipeEntity);
     }

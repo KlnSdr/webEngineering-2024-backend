@@ -1,7 +1,7 @@
 package com.sks.gateway.recipes.rest;
 
-import com.sks.gateway.recipes.dto.CreateRecipeDTO;
-import com.sks.gateway.recipes.dto.RecipeDTO;
+import com.sks.recipes.api.dto.CreateRecipeDTO;
+import com.sks.recipes.api.dto.RecipeDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +19,8 @@ public class RecipesResource {
         return new RecipeDTO(
                 id,
                 "Flammkuchen",
-                "/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png",
                 "Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...",
+                "/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png",
                 Date.from(Instant.now()),
                 "/users/42"
         );
@@ -34,8 +34,8 @@ public class RecipesResource {
             recipes[i] = new RecipeDTO(
                     ids[i],
                     "Flammkuchen",
-                    "/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png",
                     "Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...",
+                    "/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png",
                     Date.from(Instant.now()),
                     "/users/42"
             );
@@ -67,8 +67,8 @@ public class RecipesResource {
         return new RecipeDTO(
                 0,
                 recipe.getTitle(),
-                recipe.getImgUri(),
                 recipe.getDescription(),
+                recipe.getImgUri(),
                 null,
                 recipe.getOwnerUri()
         );

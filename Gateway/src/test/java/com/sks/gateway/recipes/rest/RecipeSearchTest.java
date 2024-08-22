@@ -1,46 +1,83 @@
 package com.sks.gateway.recipes.rest;
 
-import com.sks.gateway.recipes.dto.RecipeDTO;
+import com.sks.recipes.api.RecipeRequestMessage;
+import com.sks.recipes.api.RecipeResponseMessage;
+import com.sks.recipes.api.RecipeSender;
+import com.sks.recipes.api.dto.RecipeDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
+import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class RecipeSearchTest {
 
+    @Mock
+    private RecipeSender sender;
     private SearchResource controller;
 
     @BeforeEach
     public void setUp() {
-        controller = new SearchResource();
+        sender = mock(RecipeSender.class);
+        controller = new SearchResource(sender);
     }
 
     @Test
-    public void testSearchRecipes() {
-        String query = "Käsesoße";
-        List<RecipeDTO> response = controller.searchRecipes(query);
+    public void testSearchRecipeByString() {
+        List<RecipeDTO> recipe = List.of(new RecipeDTO(1L, "Tomatensoße", "description", "imageUri", false, new Timestamp(0L), "ownerUri", Collections.singletonList("0"), Collections.singletonList("Tomaten"), Map.of("Tomaten", 3)));
+        RecipeResponseMessage responseMessage = new RecipeResponseMessage(recipe);
+        when(sender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
 
-        assertNotNull(response);
-        assertEquals(1, response.size());
-        assertEquals(1, response.get(0).getId());
-        assertEquals("Käsesoße", response.get(0).getTitle());
-        assertEquals("https://via.placeholder.com/150", response.get(0).getImgUri());
-        assertEquals("Soße aus Käse", response.get(0).getDescription());
-        assertNotNull(response.get(0).getCreationDate());
-        assertEquals("/users/42", response.get(0).getOwnerUri());
+        List<RecipeDTO> result = controller.getAllRecipesBySearchString("Tomatensoße");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(recipe.get(0).getId(), result.get(0).getId());
+        assertEquals(recipe.get(0).getTitle(), result.get(0).getTitle());
+        assertEquals(recipe.get(0).getDescription(), result.get(0).getDescription());
+        assertEquals(recipe.get(0).getImgUri(), result.get(0).getImgUri());
+        assertEquals(recipe.get(0).isPrivate(), result.get(0).isPrivate());
+        assertEquals(recipe.get(0).getCreationDate(), result.get(0).getCreationDate());
+        assertEquals(recipe.get(0).getOwnerUri(), result.get(0).getOwnerUri());
+        assertEquals(recipe.get(0).getLikedByUserUris(), result.get(0).getLikedByUserUris());
+        assertEquals(recipe.get(0).getProductUris(), result.get(0).getProductUris());
+        assertEquals(recipe.get(0).getProductQuantities(), result.get(0).getProductQuantities());
+
 
     }
 
     @Test
     public void testSearchRecipeByProducts() {
-        String[] products = {"Käse", "Milch"};
-        List<RecipeDTO> response = controller.searchRecipeByProducts(products);
+        List<RecipeDTO> recipe = List.of(new RecipeDTO(1L, "Tomatensoße", "description", "imageUri", false, new Timestamp(0L), "ownerUri", Collections.singletonList("0"), Collections.singletonList("Tomaten"), Map.of("Tomaten", 3)));
+        RecipeResponseMessage responseMessage = new RecipeResponseMessage(recipe);
+        when(sender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
 
-        assertNotNull(response);
-        assertEquals(3, response.size());
+        List<RecipeDTO> result = controller.searchRecipeByProducts(new String[]{"Tomaten"});
 
-        }
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(recipe.get(0).getId(), result.get(0).getId());
+        assertEquals(recipe.get(0).getTitle(), result.get(0).getTitle());
+        assertEquals(recipe.get(0).getDescription(), result.get(0).getDescription());
+        assertEquals(recipe.get(0).getImgUri(), result.get(0).getImgUri());
+        assertEquals(recipe.get(0).isPrivate(), result.get(0).isPrivate());
+        assertEquals(recipe.get(0).getCreationDate(), result.get(0).getCreationDate());
+        assertEquals(recipe.get(0).getOwnerUri(), result.get(0).getOwnerUri());
+        assertEquals(recipe.get(0).getLikedByUserUris(), result.get(0).getLikedByUserUris());
+        assertEquals(recipe.get(0).getProductUris(), result.get(0).getProductUris());
+        assertEquals(recipe.get(0).getProductQuantities(), result.get(0).getProductQuantities());
     }
+
+
+
+
+}
