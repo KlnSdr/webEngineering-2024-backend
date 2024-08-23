@@ -1,5 +1,8 @@
 package com.sks.gateway.fridges.rest;
 
+import com.sks.fridge.api.FridgeRequestMessage;
+import com.sks.fridge.api.FridgeResponseMessage;
+import com.sks.fridge.api.FridgeSender;
 import com.sks.gateway.fridges.dto.FridgeAddItemDTO;
 import com.sks.gateway.fridges.dto.FridgeItemDTO;
 import com.sks.products.api.ProductDTO;
@@ -11,7 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/fridges")
@@ -19,16 +23,18 @@ public class FridgesResource {
 
     //Integrating the ProductsSender for communicating with the product service
     private final ProductsSender productsSender;
+    private final FridgeSender fridgeSender;
 
-    public FridgesResource(ProductsSender productsSender) {
+    public FridgesResource(ProductsSender productsSender, FridgeSender fridgeSender) {
         this.productsSender = productsSender;
+        this.fridgeSender = fridgeSender;
     }
 
     //Get information of fridge items
     @GetMapping("/{userId}")
     @ResponseBody
     public List<FridgeItemDTO> getFridgeItems(@PathVariable("userId") long userId) {
-
+        final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.getByUserId(userId));
         return List.of(new FridgeItemDTO("Milk", 1, "liters", 2.5), new FridgeItemDTO("Flour", 2, "kg", 3));
 
     }
