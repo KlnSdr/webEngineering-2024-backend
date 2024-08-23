@@ -3,7 +3,6 @@ package com.sks.fridge.service;
 import com.sks.fridge.api.*;
 import com.sks.fridge.service.data.entity.FridgeEntity;
 import com.sks.fridge.service.data.service.FridgeService;
-import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -14,12 +13,10 @@ import java.util.Optional;
 public class Listener implements FridgeListener {
     private final FridgeSender sender;
     private final FridgeService service;
-    private final HttpMessageConverters messageConverters;
 
-    public Listener(FridgeSender sender, FridgeService service, HttpMessageConverters messageConverters) {
+    public Listener(FridgeSender sender, FridgeService service) {
         this.sender = sender;
         this.service = service;
-        this.messageConverters = messageConverters;
     }
 
     @Override
@@ -61,14 +58,18 @@ public class Listener implements FridgeListener {
 
         final Optional<FridgeEntity> fridge = service.findByUserUri(uriFromUserId(userId));
         final FridgeResponseMessage response = new FridgeResponseMessage();
-        final boolean wasSuccess = true;
+        boolean wasSuccess = true;
 
         if (fridge.isPresent()) {
             final FridgeEntity entity = fridge.get();
             final Map<String, Integer> products = entity.getProductQuantityMap();
             products.remove(productUri);
             entity.setProductQuantityMap(products);
-            service.save(entity);
+            try {
+                service.save(entity);
+            } catch (Exception e) {
+                wasSuccess = false;
+            }
         }
 
         response.setWasSuccess(wasSuccess);
