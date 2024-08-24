@@ -1,9 +1,6 @@
 package com.sks.gateway.fridges.rest;
 
-import com.sks.fridge.api.FridgeRequestMessage;
-import com.sks.fridge.api.FridgeResponseMessage;
-import com.sks.fridge.api.FridgeSender;
-import com.sks.fridge.api.FridgeAddItemDTO;
+import com.sks.fridge.api.*;
 import com.sks.gateway.fridges.dto.FridgeItemDTO;
 import com.sks.products.api.ProductDTO;
 import com.sks.products.api.ProductsRequestMessage;
@@ -14,11 +11,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
-@RequestMapping("/fridges")
+@RequestMapping("/fridge")
 public class FridgesResource {
 
     //Integrating the ProductsSender for communicating with the product service
@@ -35,8 +32,8 @@ public class FridgesResource {
     @ResponseBody
     public List<FridgeItemDTO> getFridgeItems(@PathVariable("userId") long userId) {
         final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.getByUserId(userId));
-        return List.of(new FridgeItemDTO("Milk", 1, "liters", 2.5), new FridgeItemDTO("Flour", 2, "kg", 3));
-
+        final FridgeDTO fridge = response.getFridgeContent();
+        return map(fridge);
     }
 
     //Add a new product to fridge or update an existing
@@ -45,23 +42,14 @@ public class FridgesResource {
     public List<FridgeItemDTO> addOrUpdateFridgeItems(
             @PathVariable("userId") long userId,
             @RequestBody List<FridgeAddItemDTO> items) {
+        final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.updateByUserId(userId, items));
 
-        List<FridgeItemDTO> fridgeItems = new ArrayList<>();
-        long[] ids = items.stream().mapToLong(FridgeAddItemDTO::getID).toArray();
-        ProductDTO[] products = getProductsByIds(ids);
-
-        for (int i = 0; i < items.size(); i++) {
-            FridgeAddItemDTO item = items.get(i);
-            ProductDTO product = products[i];
-
-            if (product == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product with id " + item.getID() + " not found");
-            }
-
-            fridgeItems.add(new FridgeItemDTO(product.getName(), product.getId(), product.getUnit(),item.getQuantity()));
+        if (!response.isWasSuccess()) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, response.getMessage());
         }
 
-        return fridgeItems;
+        final FridgeDTO fridge = response.getFridgeContent();
+        return map(fridge);
     }
 
     //Delete product from fridge
@@ -69,16 +57,27 @@ public class FridgesResource {
     public ResponseEntity<Void> deleteFridgeItem(
             @PathVariable("userId") long userId,
             @PathVariable("productId") long productId) {
-
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.deleteByUserAndProduct(userId, productId));
+        if (!response.isWasSuccess()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, response.getMessage());
+        }
+        return ResponseEntity.noContent().build();
     }
 
     private ProductDTO[] getProductsByIds(long[] ids) {
-
-            ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage(ids));
-            ProductDTO[] products = response.getProducts();
-
-        return products;
+        final ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage(ids));
+        return response.getProducts();
     }
 
+    private List<FridgeItemDTO> map(FridgeDTO fridge) {
+        // ["/products/42"] -> ["42"] -> List(42L) -> (long[])[42]
+        final long[] productIds = fridge.getProducts().keySet().stream().map(i -> i.replace("/products/", "")).map(Long::parseLong).toList().stream().mapToLong(Long::longValue).toArray();
+        final ProductDTO[] products = getProductsByIds(productIds);
+
+        return Arrays.stream(products).map(product -> combine(product, fridge.getProducts().get("/products/" + product.getId()))).toList();
+    }
+
+    private FridgeItemDTO combine(ProductDTO product, Integer quantity) {
+        return new FridgeItemDTO(product.getName(), product.getId(), product.getUnit(), quantity);
+    }
 }
