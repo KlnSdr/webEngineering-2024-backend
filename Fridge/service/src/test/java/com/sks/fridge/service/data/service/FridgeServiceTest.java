@@ -10,8 +10,9 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 
@@ -58,4 +59,27 @@ public class FridgeServiceTest {
 
         assertEquals(fridge, result);
     }
+
+    @Test
+    void findByUserUriReturnsFridgeWhenUriExists() {
+        String uri = "userUri";
+        FridgeEntity fridge = new FridgeEntity();
+        when(fridgeRepository.findByUserUriEquals(uri)).thenReturn(Optional.of(fridge));
+
+        Optional<FridgeEntity> result = fridgeService.findByUserUri(uri);
+
+        assertTrue(result.isPresent());
+        assertEquals(fridge, result.get());
+    }
+
+    @Test
+    void findByUserUriReturnsEmptyWhenUriDoesNotExist() {
+        String uri = "nonExistentUri";
+        when(fridgeRepository.findByUserUriEquals(uri)).thenReturn(Optional.empty());
+
+        Optional<FridgeEntity> result = fridgeService.findByUserUri(uri);
+
+        assertFalse(result.isPresent());
+    }
+
 }
