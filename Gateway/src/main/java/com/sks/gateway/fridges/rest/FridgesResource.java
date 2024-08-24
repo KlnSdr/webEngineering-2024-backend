@@ -3,7 +3,7 @@ package com.sks.gateway.fridges.rest;
 import com.sks.fridge.api.FridgeRequestMessage;
 import com.sks.fridge.api.FridgeResponseMessage;
 import com.sks.fridge.api.FridgeSender;
-import com.sks.gateway.fridges.dto.FridgeAddItemDTO;
+import com.sks.fridge.api.FridgeAddItemDTO;
 import com.sks.gateway.fridges.dto.FridgeItemDTO;
 import com.sks.products.api.ProductDTO;
 import com.sks.products.api.ProductsRequestMessage;

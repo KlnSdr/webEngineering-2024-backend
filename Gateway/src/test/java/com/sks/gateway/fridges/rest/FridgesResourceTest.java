@@ -1,6 +1,7 @@
 package com.sks.gateway.fridges.rest;
 
-import com.sks.gateway.fridges.dto.FridgeAddItemDTO;
+import com.sks.fridge.api.FridgeAddItemDTO;
+import com.sks.fridge.api.FridgeSender;
 import com.sks.gateway.fridges.dto.FridgeItemDTO;
 import com.sks.products.api.ProductDTO;
 import com.sks.products.api.ProductsRequestMessage;
@@ -22,13 +23,16 @@ import static org.mockito.Mockito.when;
 public class FridgesResourceTest {
 
     @Mock
-    private ProductsSender sender;
+    private ProductsSender productsSender;
+    @Mock
+    private FridgeSender fridgeSender;
     private FridgesResource controller;
 
     @BeforeEach
     public void setUp() {
-        sender = mock(ProductsSender.class);
-        controller = new FridgesResource(sender);
+        productsSender = mock(ProductsSender.class);
+        fridgeSender = mock(FridgeSender.class);
+        controller = new FridgesResource(productsSender, fridgeSender);
     }
 
     @Test
@@ -47,11 +51,11 @@ public class FridgesResourceTest {
 
         ProductsResponseMessage responseMessage = new ProductsResponseMessage(new ProductDTO[]{product1, product2});
 
-        when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
+        when(productsSender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
 
         List<FridgeAddItemDTO> items = List.of(
-                new FridgeAddItemDTO(1, 2.5),
-                new FridgeAddItemDTO(2, 3.0)
+                new FridgeAddItemDTO(1, 2),
+                new FridgeAddItemDTO(2, 3)
         );
 
         List<FridgeItemDTO> results = controller.addOrUpdateFridgeItems(1L, items);
@@ -65,9 +69,9 @@ public class FridgesResourceTest {
     @Test
     public void testAddOrUpdateFridgeItems_NotFound() {
         ProductsResponseMessage responseMessage = new ProductsResponseMessage(new ProductDTO[]{null});
-        when(sender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
+        when(productsSender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
 
-        List<FridgeAddItemDTO> items = List.of(new FridgeAddItemDTO(1, 2.5));
+        List<FridgeAddItemDTO> items = List.of(new FridgeAddItemDTO(1, 2));
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
             controller.addOrUpdateFridgeItems(1L, items);

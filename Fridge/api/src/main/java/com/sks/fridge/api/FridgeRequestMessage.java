@@ -1,7 +1,6 @@
 package com.sks.fridge.api;
 
 import com.sks.base.api.BaseMessage;
-import com.sks.products.api.ProductDTO;
 
 import java.util.List;
 
@@ -9,7 +8,7 @@ public class FridgeRequestMessage extends BaseMessage {
     private FridgeRequestType requestType;
     private long userId;
     private long productId;
-    private List<ProductDTO> products;
+    private List<FridgeAddItemDTO> products;
     private String message;
 
     public FridgeRequestMessage() {
@@ -34,7 +33,7 @@ public class FridgeRequestMessage extends BaseMessage {
         return request;
     }
 
-    public static FridgeRequestMessage updateByUserId(long userId, List<ProductDTO> products) {
+    public static FridgeRequestMessage updateByUserId(long userId, List<FridgeAddItemDTO> products) {
         final FridgeRequestMessage request = new FridgeRequestMessage();
         request.setRequestType(FridgeRequestType.UPDATE);
         request.setUserId(userId);
@@ -58,11 +57,11 @@ public class FridgeRequestMessage extends BaseMessage {
         this.productId = productId;
     }
 
-    public List<ProductDTO> getProducts() {
+    public List<FridgeAddItemDTO> getProducts() {
         return products;
     }
 
-    public void setProducts(List<ProductDTO> products) {
+    public void setProducts(List<FridgeAddItemDTO> products) {
         this.products = products;
     }
 

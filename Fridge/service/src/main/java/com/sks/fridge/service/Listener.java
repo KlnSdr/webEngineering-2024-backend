@@ -6,6 +6,7 @@ import com.sks.fridge.service.data.service.FridgeService;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -48,7 +49,32 @@ public class Listener implements FridgeListener {
     }
 
     private FridgeResponseMessage handleUpdate(FridgeRequestMessage request) {
-        return null;
+        final long userId = request.getUserId();
+        final String userUri = uriFromUserId(userId);
+        final Optional<FridgeEntity> fridge = service.findByUserUri(userUri);
+        final FridgeResponseMessage response = new FridgeResponseMessage();
+        response.setWasSuccess(true);
+
+        final FridgeEntity entity;
+        if (fridge.isEmpty()) {
+            entity = new FridgeEntity();
+            entity.setUserUri(userUri);
+            entity.setProductQuantityMap(map(request.getProducts()));
+        } else {
+            entity = fridge.get();
+            final Map<String, Integer> products = entity.getProductQuantityMap();
+            for (FridgeAddItemDTO product : request.getProducts()) {
+                products.put(uriFromProductId(product.getID()), product.getQuantity());
+            }
+        }
+        try {
+            final FridgeEntity savedFridge = service.save(entity);
+            response.setFridgeContent(map(savedFridge));
+        } catch (Exception e) {
+            response.setWasSuccess(false);
+            response.setFridgeContent(map(entity));
+        }
+        return response;
     }
 
     private FridgeResponseMessage handleDelete(FridgeRequestMessage request) {
@@ -89,5 +115,13 @@ public class Listener implements FridgeListener {
         dto.setUserUri(fridgeEntity.getUserUri());
         dto.setProducts(fridgeEntity.getProductQuantityMap());
         return dto;
+    }
+
+    private Map<String, Integer> map(List<FridgeAddItemDTO> products) {
+        final Map<String, Integer> map = new HashMap<>();
+        for (FridgeAddItemDTO product : products) {
+            map.put(uriFromProductId(product.getID()), product.getQuantity());
+        }
+        return map;
     }
 }

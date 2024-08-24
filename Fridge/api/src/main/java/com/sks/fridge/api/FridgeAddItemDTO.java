@@ -1,13 +1,13 @@
-package com.sks.gateway.fridges.dto;
+package com.sks.fridge.api;
 
 public class FridgeAddItemDTO {
 
     private long productID;
-    private double quantity;
+    private Integer quantity;
 
     public FridgeAddItemDTO() {}
 
-    public FridgeAddItemDTO(long productID, double quantity) {
+    public FridgeAddItemDTO(long productID, Integer quantity) {
         this.productID = productID;
         this.quantity = quantity;
     }
@@ -20,11 +20,11 @@ public class FridgeAddItemDTO {
         this.productID = productID;
     }
 
-    public double getQuantity() {
+    public Integer getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(double quantity) {
+    public void setQuantity(Integer quantity) {
         this.quantity = quantity;
     }
 
