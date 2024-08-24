@@ -1,7 +1,6 @@
 package com.sks.gateway.fridges.rest;
 
-import com.sks.fridge.api.FridgeAddItemDTO;
-import com.sks.fridge.api.FridgeSender;
+import com.sks.fridge.api.*;
 import com.sks.gateway.fridges.dto.FridgeItemDTO;
 import com.sks.products.api.ProductDTO;
 import com.sks.products.api.ProductsRequestMessage;
@@ -11,11 +10,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -36,55 +38,87 @@ public class FridgesResourceTest {
     }
 
     @Test
-    public void testGetFridgeItems_Success() {
-        List<FridgeItemDTO> result = controller.getFridgeItems(1L);
+    void getFridgeItemsReturnsItemsWhenUserIdIsValid() {
+        long userId = 1L;
+        FridgeResponseMessage fridgeResponse = mock(FridgeResponseMessage.class);
+        FridgeDTO fridge = mock(FridgeDTO.class);
+        when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(fridgeResponse);
+        when(fridgeResponse.getFridgeContent()).thenReturn(fridge);
+        when(fridge.getProducts()).thenReturn(Map.of("/products/1", 2));
+        ProductsResponseMessage productsResponse = mock(ProductsResponseMessage.class);
+        ProductDTO product = new ProductDTO(1L, "Milk", "Litre");
+        when(productsSender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(productsResponse);
+        when(productsResponse.getProducts()).thenReturn(new ProductDTO[]{product});
 
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals("Milk", result.get(0).getName());
+        List<FridgeItemDTO> result = controller.getFridgeItems(userId);
+
+        assertEquals(1, result.size());
+        assertEquals("Milk", result.getFirst().getName());
     }
 
     @Test
-    public void testAddOrUpdateFridgeItems_Success() {
-        ProductDTO product1 = new ProductDTO(1, "Milk", "liters");
-        ProductDTO product2 = new ProductDTO(2, "Flour", "kg");
+    void addOrUpdateFridgeItemsReturnsUpdatedItemsWhenRequestIsValid() {
+        long userId = 1L;
+        List<FridgeAddItemDTO> items = List.of(new FridgeAddItemDTO(1L, 2));
+        FridgeResponseMessage fridgeResponse = mock(FridgeResponseMessage.class);
+        FridgeDTO fridge = mock(FridgeDTO.class);
+        when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(fridgeResponse);
+        when(fridgeResponse.isWasSuccess()).thenReturn(true);
+        when(fridgeResponse.getFridgeContent()).thenReturn(fridge);
+        when(fridge.getProducts()).thenReturn(Map.of("/products/1", 2));
+        ProductsResponseMessage productsResponse = mock(ProductsResponseMessage.class);
+        ProductDTO product = new ProductDTO(1L, "Milk", "Litre");
+        when(productsSender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(productsResponse);
+        when(productsResponse.getProducts()).thenReturn(new ProductDTO[]{product});
 
-        ProductsResponseMessage responseMessage = new ProductsResponseMessage(new ProductDTO[]{product1, product2});
+        List<FridgeItemDTO> result = controller.addOrUpdateFridgeItems(userId, items);
 
-        when(productsSender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
-
-        List<FridgeAddItemDTO> items = List.of(
-                new FridgeAddItemDTO(1, 2),
-                new FridgeAddItemDTO(2, 3)
-        );
-
-        List<FridgeItemDTO> results = controller.addOrUpdateFridgeItems(1L, items);
-
-        assertNotNull(results);
-        assertEquals(2, results.size());
-        assertEquals(product1.getId(), results.get(0).getId());
-        assertEquals(product2.getId(), results.get(1).getId());
+        assertEquals(1, result.size());
+        assertEquals("Milk", result.getFirst().getName());
     }
 
     @Test
-    public void testAddOrUpdateFridgeItems_NotFound() {
-        ProductsResponseMessage responseMessage = new ProductsResponseMessage(new ProductDTO[]{null});
-        when(productsSender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(responseMessage);
-
-        List<FridgeAddItemDTO> items = List.of(new FridgeAddItemDTO(1, 2));
+    void addOrUpdateFridgeItemsThrowsExceptionWhenResponseIsNotSuccessful() {
+        long userId = 1L;
+        List<FridgeAddItemDTO> items = List.of(new FridgeAddItemDTO(1L, 2));
+        FridgeResponseMessage fridgeResponse = mock(FridgeResponseMessage.class);
+        when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(fridgeResponse);
+        when(fridgeResponse.isWasSuccess()).thenReturn(false);
+        when(fridgeResponse.getMessage()).thenReturn("Error");
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            controller.addOrUpdateFridgeItems(1L, items);
+            controller.addOrUpdateFridgeItems(userId, items);
         });
 
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-        assertEquals("Product with id 1 not found", exception.getReason());
+        assertEquals("Error", exception.getReason());
     }
 
     @Test
-    public void testDeleteFridgeItem_Success() {
+    void deleteFridgeItemReturnsNoContentWhenRequestIsValid() {
+        long userId = 1L;
+        long productId = 1L;
+        FridgeResponseMessage fridgeResponse = mock(FridgeResponseMessage.class);
+        when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(fridgeResponse);
+        when(fridgeResponse.isWasSuccess()).thenReturn(true);
 
-        assertDoesNotThrow(() -> controller.deleteFridgeItem(1L, 1L));
+        ResponseEntity<Void> response = controller.deleteFridgeItem(userId, productId);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
-    
+
+    @Test
+    void deleteFridgeItemThrowsExceptionWhenResponseIsNotSuccessful() {
+        long userId = 1L;
+        long productId = 1L;
+        FridgeResponseMessage fridgeResponse = mock(FridgeResponseMessage.class);
+        when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(fridgeResponse);
+        when(fridgeResponse.isWasSuccess()).thenReturn(false);
+        when(fridgeResponse.getMessage()).thenReturn("Error");
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.deleteFridgeItem(userId, productId);
+        });
+
+        assertEquals("Error", exception.getReason());
+    }
 }
