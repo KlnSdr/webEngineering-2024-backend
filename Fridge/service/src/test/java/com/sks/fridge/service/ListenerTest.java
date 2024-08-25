@@ -6,6 +6,7 @@ import com.sks.fridge.service.data.service.FridgeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,12 +16,14 @@ import java.util.Optional;
 import static org.mockito.Mockito.*;
 
 public class ListenerTest {
-
     @Mock
     private FridgeSender sender;
 
     @Mock
     private FridgeService service;
+
+    @Mock
+    private Jackson2JsonMessageConverter converter;
 
     private Listener listener;
 
@@ -28,7 +31,8 @@ public class ListenerTest {
     void setUp() {
         sender = mock(FridgeSender.class);
         service = mock(FridgeService.class);
-        listener = new Listener(sender, service);
+        converter = mock(Jackson2JsonMessageConverter.class);
+        listener = new Listener(sender, service, converter);
     }
 
     @Test
@@ -40,8 +44,9 @@ public class ListenerTest {
         fridgeEntity.setUserUri("/users/id/1");
         fridgeEntity.setProductQuantityMap(new HashMap<>());
         when(service.findByUserUri("/users/id/1")).thenReturn(Optional.of(fridgeEntity));
+        when(converter.fromMessage(any())).thenReturn(request);
 
-        listener.listen(request);
+        listener.listen(null);
 
         verify(sender).sendResponse(eq(request), any(FridgeResponseMessage.class));
     }
@@ -52,8 +57,9 @@ public class ListenerTest {
         request.setRequestType(FridgeRequestType.GET);
         request.setUserId(1L);
         when(service.findByUserUri("/users/id/1")).thenReturn(Optional.empty());
+        when(converter.fromMessage(any())).thenReturn(request);
 
-        listener.listen(request);
+        listener.listen(null);
 
         verify(sender).sendResponse(eq(request), any(FridgeResponseMessage.class));
     }
@@ -70,8 +76,9 @@ public class ListenerTest {
         fridgeEntity.setProductQuantityMap(new HashMap<>());
         when(service.findByUserUri("/users/id/1")).thenReturn(Optional.of(fridgeEntity));
         when(service.save(any(FridgeEntity.class))).thenReturn(fridgeEntity);
+        when(converter.fromMessage(any())).thenReturn(request);
 
-        listener.listen(request);
+        listener.listen(null);
 
         verify(sender).sendResponse(eq(request), any(FridgeResponseMessage.class));
     }
@@ -88,8 +95,9 @@ public class ListenerTest {
         fridgeEntity.setUserUri("/users/id/1");
         fridgeEntity.setProductQuantityMap(new HashMap<>());
         when(service.save(any(FridgeEntity.class))).thenReturn(fridgeEntity);
+        when(converter.fromMessage(any())).thenReturn(request);
 
-        listener.listen(request);
+        listener.listen(null);
 
         verify(sender).sendResponse(eq(request), any(FridgeResponseMessage.class));
     }
@@ -107,8 +115,9 @@ public class ListenerTest {
         fridgeEntity.setProductQuantityMap(productQuantityMap);
         when(service.findByUserUri("/users/id/1")).thenReturn(Optional.of(fridgeEntity));
         when(service.save(any(FridgeEntity.class))).thenReturn(fridgeEntity);
+        when(converter.fromMessage(any())).thenReturn(request);
 
-        listener.listen(request);
+        listener.listen(null);
 
         verify(sender).sendResponse(eq(request), any(FridgeResponseMessage.class));
     }
@@ -120,10 +129,21 @@ public class ListenerTest {
         request.setUserId(1L);
         request.setProductId(1L);
         when(service.findByUserUri("/users/id/1")).thenReturn(Optional.empty());
+        when(converter.fromMessage(any())).thenReturn(request);
 
-        listener.listen(request);
+        listener.listen(null);
 
         verify(sender).sendResponse(eq(request), any(FridgeResponseMessage.class));
+    }
+
+    @Test
+    public void listenHandlesNonFridgeRequestByDoingNothing() {
+        Object nonFridgeRequest = new Object();
+        when(converter.fromMessage(any())).thenReturn(nonFridgeRequest);
+
+        listener.listen(null);
+
+        verify(sender, never()).sendResponse(any(), any());
     }
 
 }
