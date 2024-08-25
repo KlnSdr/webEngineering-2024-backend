@@ -1,5 +1,6 @@
 package com.sks.fridge.api;
 
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 
 /**
@@ -16,5 +17,6 @@ public interface FridgeListener {
      * @param in The incoming fridge request message to be processed.
      */
     @RabbitListener(queues = FridgeQueueConfig.REQUEST_QUEUE_NAME)
-    void listen(FridgeRequestMessage in);
+    void listen(Message in); // FIXME: Change to FridgeRequestMessage
+//    void listen(FridgeRequestMessage in);
 }

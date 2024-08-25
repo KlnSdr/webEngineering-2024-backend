@@ -3,6 +3,11 @@ package com.sks.fridge.service;
 import com.sks.fridge.api.*;
 import com.sks.fridge.service.data.entity.FridgeEntity;
 import com.sks.fridge.service.data.service.FridgeService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -12,22 +17,32 @@ import java.util.Optional;
 
 @Component
 public class Listener implements FridgeListener {
+    private static final Logger log = LoggerFactory.getLogger(Listener.class);
     private final FridgeSender sender;
     private final FridgeService service;
+    private final Jackson2JsonMessageConverter converter;
 
-    public Listener(FridgeSender sender, FridgeService service) {
+    public Listener(FridgeSender sender, FridgeService service, @Qualifier("fridgeMessageConverter") Jackson2JsonMessageConverter converter) {
         this.sender = sender;
         this.service = service;
+        this.converter = converter;
     }
 
     @Override
-    public void listen(FridgeRequestMessage message) {
-        final FridgeResponseMessage response = switch (message.getRequestType()) {
-            case GET -> handleGet(message);
-            case UPDATE -> handleUpdate(message);
-            case DELETE -> handleDelete(message);
+    public void listen(Message message) {
+        final Object obj = converter.fromMessage(message);
+        if (!(obj instanceof FridgeRequestMessage request)) {
+            log.error("Received message is not an instance of FridgeRequestMessage");
+            log.error("Received message: {}", obj);
+            return;
+        }
+
+        final FridgeResponseMessage response = switch (request.getRequestType()) {
+            case GET -> handleGet(request);
+            case UPDATE -> handleUpdate(request);
+            case DELETE -> handleDelete(request);
         };
-        sender.sendResponse(message, response);
+        sender.sendResponse(request, response);
     }
 
     private FridgeResponseMessage handleGet(FridgeRequestMessage request) {

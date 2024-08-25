@@ -33,6 +33,9 @@ public class FridgesResource {
     public List<FridgeItemDTO> getFridgeItems(@PathVariable("userId") long userId) {
         final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.getByUserId(userId));
         final FridgeDTO fridge = response.getFridgeContent();
+        if (fridge == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fridge not found");
+        }
         return map(fridge);
     }
 
