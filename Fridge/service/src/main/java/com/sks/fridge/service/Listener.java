@@ -79,7 +79,7 @@ public class Listener implements FridgeListener {
             entity = fridge.get();
             final Map<String, Integer> products = entity.getProductQuantityMap();
             for (FridgeAddItemDTO product : request.getProducts()) {
-                products.put(uriFromProductId(product.getID()), product.getQuantity());
+                products.put(uriFromProductId(product.getProductID()), product.getQuantity());
             }
         }
         try {
@@ -135,7 +135,7 @@ public class Listener implements FridgeListener {
     private Map<String, Integer> map(List<FridgeAddItemDTO> products) {
         final Map<String, Integer> map = new HashMap<>();
         for (FridgeAddItemDTO product : products) {
-            map.put(uriFromProductId(product.getID()), product.getQuantity());
+            map.put(uriFromProductId(product.getProductID()), product.getQuantity());
         }
         return map;
     }

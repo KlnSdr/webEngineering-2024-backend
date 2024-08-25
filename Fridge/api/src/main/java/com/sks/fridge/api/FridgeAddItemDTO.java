@@ -12,11 +12,11 @@ public class FridgeAddItemDTO {
         this.quantity = quantity;
     }
 
-    public long getID() {
+    public long getProductID() {
         return productID;
     }
 
-    public void setID(long productID) {
+    public void setProductID(long productID) {
         this.productID = productID;
     }
 
