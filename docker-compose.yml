@@ -17,7 +17,7 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: Gateway/Dockerfile
+      dockerfile: Gateway/webapp/Dockerfile
     container_name: webEng_Gateway
     depends_on:
       - rabbitmq
