@@ -2,6 +2,7 @@ package com.sks.gateway.fridges.rest;
 
 import com.sks.fridge.api.*;
 import com.sks.gateway.fridges.dto.FridgeItemDTO;
+import com.sks.gateway.util.AccessVerifier;
 import com.sks.products.api.ProductDTO;
 import com.sks.products.api.ProductsRequestMessage;
 import com.sks.products.api.ProductsResponseMessage;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,16 +23,22 @@ public class FridgesResource {
     //Integrating the ProductsSender for communicating with the product service
     private final ProductsSender productsSender;
     private final FridgeSender fridgeSender;
+    private final AccessVerifier accessVerifier;
 
-    public FridgesResource(ProductsSender productsSender, FridgeSender fridgeSender) {
+    public FridgesResource(ProductsSender productsSender, FridgeSender fridgeSender, AccessVerifier accessVerifier) {
         this.productsSender = productsSender;
         this.fridgeSender = fridgeSender;
+        this.accessVerifier = accessVerifier;
     }
 
     //Get information of fridge items
     @GetMapping("/{userId}")
     @ResponseBody
-    public List<FridgeItemDTO> getFridgeItems(@PathVariable("userId") long userId) {
+    public List<FridgeItemDTO> getFridgeItems(@PathVariable("userId") long userId, Principal principal) {
+        if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
         final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.getByUserId(userId));
         final FridgeDTO fridge = response.getFridgeContent();
         if (fridge == null) {
@@ -44,7 +52,11 @@ public class FridgesResource {
     @ResponseBody
     public List<FridgeItemDTO> addOrUpdateFridgeItems(
             @PathVariable("userId") long userId,
-            @RequestBody List<FridgeAddItemDTO> items) {
+            @RequestBody List<FridgeAddItemDTO> items, Principal principal) {
+        if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
         final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.updateByUserId(userId, items));
 
         if (!response.isWasSuccess()) {
@@ -59,7 +71,11 @@ public class FridgesResource {
     @DeleteMapping("/{userId}/{productId}")
     public ResponseEntity<Void> deleteFridgeItem(
             @PathVariable("userId") long userId,
-            @PathVariable("productId") long productId) {
+            @PathVariable("productId") long productId, Principal principal) {
+        if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
         final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.deleteByUserAndProduct(userId, productId));
         if (!response.isWasSuccess()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, response.getMessage());

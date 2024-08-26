@@ -33,7 +33,7 @@ public class ListenerTest {
     @Test
     void listenSendsUserWhenGetRequestAndUserExists() {
         final UsersRequestMessage message = new UsersRequestMessage();
-        message.setRequestType(UsersRequestType.GET);
+        message.setRequestType(UsersRequestType.GET_BY_ID);
         message.setUserId(1L);
 
         UsersEntity user = new UsersEntity();
@@ -51,9 +51,39 @@ public class ListenerTest {
     @Test
     void listenSendsEmptyResponseWhenGetRequestAndUserDoesNotExist() {
         UsersRequestMessage message = mock(UsersRequestMessage.class);
-        when(message.getRequestType()).thenReturn(UsersRequestType.GET);
+        when(message.getRequestType()).thenReturn(UsersRequestType.GET_BY_ID);
         when(message.getUserId()).thenReturn(1L);
         when(usersService.findById(1L)).thenReturn(Optional.empty());
+
+        listener.listen(message);
+
+        verify(usersSender).sendResponse(eq(message), argThat(response -> response.getUser() == null));
+    }
+
+    @Test
+    void listenSendsUserWhenGetRequestAndIdpUserExists() {
+        final UsersRequestMessage message = new UsersRequestMessage();
+        message.setRequestType(UsersRequestType.GET_BY_IDP);
+        message.setUserId(1L);
+
+        UsersEntity user = new UsersEntity();
+        user.setId(1L);
+        when(usersService.findByIdpHash(any())).thenReturn(Optional.of(user));
+
+        listener.listen(message);
+
+        verify(usersSender).sendResponse(eq(message), argThat(response -> {
+            UserDTO userDTO = response.getUser();
+            return userDTO != null && userDTO.getUserId().equals(user.getId());
+        }));
+    }
+
+    @Test
+    void listenSendsEmptyResponseWhenGetRequestAndIdpUserDoesNotExist() {
+        UsersRequestMessage message = mock(UsersRequestMessage.class);
+        when(message.getRequestType()).thenReturn(UsersRequestType.GET_BY_IDP);
+        when(message.getUserId()).thenReturn(1L);
+        when(usersService.findByIdpHash(any())).thenReturn(Optional.empty());
 
         listener.listen(message);
 

@@ -2,6 +2,7 @@ package com.sks.gateway.fridges.rest;
 
 import com.sks.fridge.api.*;
 import com.sks.gateway.fridges.dto.FridgeItemDTO;
+import com.sks.gateway.util.AccessVerifier;
 import com.sks.products.api.ProductDTO;
 import com.sks.products.api.ProductsRequestMessage;
 import com.sks.products.api.ProductsResponseMessage;
@@ -28,13 +29,17 @@ public class FridgesResourceTest {
     private ProductsSender productsSender;
     @Mock
     private FridgeSender fridgeSender;
+    @Mock
+    private AccessVerifier accessVerifier;
+
     private FridgesResource controller;
 
     @BeforeEach
     public void setUp() {
         productsSender = mock(ProductsSender.class);
         fridgeSender = mock(FridgeSender.class);
-        controller = new FridgesResource(productsSender, fridgeSender);
+        accessVerifier = mock(AccessVerifier.class);
+        controller = new FridgesResource(productsSender, fridgeSender, accessVerifier);
     }
 
     @Test
@@ -49,8 +54,9 @@ public class FridgesResourceTest {
         ProductDTO product = new ProductDTO(1L, "Milk", "Litre");
         when(productsSender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(productsResponse);
         when(productsResponse.getProducts()).thenReturn(new ProductDTO[]{product});
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
 
-        List<FridgeItemDTO> result = controller.getFridgeItems(userId);
+        List<FridgeItemDTO> result = controller.getFridgeItems(userId, null);
 
         assertEquals(1, result.size());
         assertEquals("Milk", result.getFirst().getName());
@@ -70,8 +76,9 @@ public class FridgesResourceTest {
         ProductDTO product = new ProductDTO(1L, "Milk", "Litre");
         when(productsSender.sendRequest(any(ProductsRequestMessage.class))).thenReturn(productsResponse);
         when(productsResponse.getProducts()).thenReturn(new ProductDTO[]{product});
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
 
-        List<FridgeItemDTO> result = controller.addOrUpdateFridgeItems(userId, items);
+        List<FridgeItemDTO> result = controller.addOrUpdateFridgeItems(userId, items, null);
 
         assertEquals(1, result.size());
         assertEquals("Milk", result.getFirst().getName());
@@ -85,9 +92,10 @@ public class FridgesResourceTest {
         when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(fridgeResponse);
         when(fridgeResponse.isWasSuccess()).thenReturn(false);
         when(fridgeResponse.getMessage()).thenReturn("Error");
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            controller.addOrUpdateFridgeItems(userId, items);
+            controller.addOrUpdateFridgeItems(userId, items, null);
         });
 
         assertEquals("Error", exception.getReason());
@@ -100,8 +108,9 @@ public class FridgesResourceTest {
         FridgeResponseMessage fridgeResponse = mock(FridgeResponseMessage.class);
         when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(fridgeResponse);
         when(fridgeResponse.isWasSuccess()).thenReturn(true);
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
 
-        ResponseEntity<Void> response = controller.deleteFridgeItem(userId, productId);
+        ResponseEntity<Void> response = controller.deleteFridgeItem(userId, productId, null);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
@@ -114,9 +123,10 @@ public class FridgesResourceTest {
         when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(fridgeResponse);
         when(fridgeResponse.isWasSuccess()).thenReturn(false);
         when(fridgeResponse.getMessage()).thenReturn("Error");
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            controller.deleteFridgeItem(userId, productId);
+            controller.deleteFridgeItem(userId, productId, null);
         });
 
         assertEquals("Error", exception.getReason());
