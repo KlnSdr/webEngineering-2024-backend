@@ -3,6 +3,7 @@ package com.sks.recipes.api.dto;
 import java.util.Map;
 
 public class CreateRecipeDTO {
+    private long id = -1;
     private String title;
     private String imgUri;
     private String description;
@@ -66,5 +67,13 @@ public class CreateRecipeDTO {
 
     public void setProductQuantities(Map<String, Integer> productQuantities) {
         this.productQuantities = productQuantities;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 }

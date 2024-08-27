@@ -8,7 +8,9 @@ import com.sks.recipes.service.data.entity.RecipeEntity;
 import com.sks.recipes.service.data.service.RecipeService;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @Component
@@ -33,16 +35,43 @@ public class Listener implements RecipesListener {
         sender.sendResponse(message, response);
     }
 
-    private RecipeResponseMessage getById(long[] id) {
-        return null;
+    private RecipeResponseMessage getById(long[] ids) {
+        final List<RecipeDTO> recipes = new ArrayList<>();
+
+        for (long id : ids) {
+            final Optional<RecipeEntity> recipe = service.findById(id);
+            recipe.ifPresent(entity -> recipes.add(map(entity)));
+        }
+
+        final RecipeResponseMessage response = new RecipeResponseMessage();
+        response.setRecipes(recipes);
+        return response;
     }
 
     private RecipeResponseMessage update(CreateRecipeDTO recipe) {
-        return null;
+        final RecipeEntity entity = map(recipe);
+        final RecipeEntity savedEntity = service.save(entity);
+
+        final RecipeResponseMessage response = new RecipeResponseMessage();
+        response.setRecipe(map(savedEntity));
+        return response;
     }
 
     private RecipeResponseMessage delete(long[] ids) {
-        return null;
+        boolean success = true;
+        List<Long> notDeletedIds = new ArrayList<>();
+
+        for (long id : ids) {
+            if (!service.deleteById(id)) {
+                success = false;
+                notDeletedIds.add(id);
+            }
+        }
+
+        final RecipeResponseMessage response = new RecipeResponseMessage();
+        response.setWasSuccessful(success);
+        response.setNotDeletedIds(map(notDeletedIds));
+        return response;
     }
 
     private RecipeResponseMessage getByName(String searchString) {
@@ -63,5 +92,32 @@ public class Listener implements RecipesListener {
 
     private RecipeDTO map(RecipeEntity recipeEntity) {
         return new RecipeDTO(recipeEntity.getId(), recipeEntity.getTitle(), recipeEntity.getDescription(), recipeEntity.getImageUri(), recipeEntity.isPrivate(), recipeEntity.getCreationDate(), recipeEntity.getOwnerUri(), recipeEntity.getLikedByUserUris(),recipeEntity.getProductUris(), recipeEntity.getProductQuantities());
+    }
+
+    private long[] map(List<Long> ids) {
+        return ids.stream().mapToLong(Long::longValue).toArray();
+    }
+
+    private RecipeEntity map(CreateRecipeDTO recipe) {
+        final RecipeEntity entity = new RecipeEntity();
+        entity.setTitle(recipe.getTitle());
+        entity.setDescription(recipe.getDescription());
+        entity.setImageUri(recipe.getImgUri());
+        entity.setOwnerUri(recipe.getOwnerUri());
+        entity.setPrivate(recipe.isPrivate());
+        entity.setProductQuantities(recipe.getProductQuantities());
+
+        final List<String> productUris = new ArrayList<>();
+        recipe.getProductQuantities().forEach((uri, amount) -> productUris.add(uri));
+        entity.setProductUris(productUris);
+
+        entity.setLikedByUserUris(new ArrayList<>());
+
+        final long id = recipe.getId();
+        if (id > 0) {
+            entity.setId(id);
+        }
+
+        return entity;
     }
 }
