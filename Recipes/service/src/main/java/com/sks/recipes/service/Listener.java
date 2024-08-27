@@ -23,11 +23,25 @@ public class Listener implements RecipesListener {
     @Override
     public void listen(RecipeRequestMessage message) {
         final List<RecipeDTO> response = switch (message.getRequestType()) {
+            case GET_BY_ID -> getById(message.getIds());
+            case UPDATE -> null;
+            case DELETE -> delete(message.getIds());
             case SEARCH_BY_NAME -> getByName(message.getMessage());
             case SEARCH_BY_PRODUCTS -> getByProduct(message.getProducts());
         };
         sender.sendResponse(message, new RecipeResponseMessage(response));
+    }
 
+    private List<RecipeDTO> getById(long[] id) {
+        return List.of();
+    }
+
+    private List<RecipeDTO> update(RecipeDTO recipe) {
+        return List.of(recipe);
+    }
+
+    private List<RecipeDTO> delete(long[] ids) {
+        return List.of();
     }
 
     private List<RecipeDTO> getByName(String searchString) {
