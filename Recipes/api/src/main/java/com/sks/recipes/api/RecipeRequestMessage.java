@@ -38,6 +38,13 @@ public class RecipeRequestMessage extends BaseMessage {
         return message;
     }
 
+    public static RecipeRequestMessage update(CreateRecipeDTO recipe) {
+        final RecipeRequestMessage message = new RecipeRequestMessage();
+        message.recipe = recipe;
+        message.requestType = RecipeRequestType.UPDATE;
+        return message;
+    }
+
     public String getMessage() {
         return message;
     }

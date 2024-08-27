@@ -1,25 +1,28 @@
 package com.sks.gateway.recipes.rest;
 
+import com.sks.gateway.util.UserHelper;
 import com.sks.recipes.api.RecipeRequestMessage;
 import com.sks.recipes.api.RecipeResponseMessage;
 import com.sks.recipes.api.RecipeSender;
 import com.sks.recipes.api.dto.CreateRecipeDTO;
 import com.sks.recipes.api.dto.RecipeDTO;
+import com.sks.users.api.UserDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.util.Date;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/recipes")
 public class RecipesResource {
+    private final UserHelper userHelper;
     private final RecipeSender sender;
 
-    public RecipesResource(RecipeSender sender) {
+    public RecipesResource(RecipeSender sender, UserHelper userHelper) {
         this.sender = sender;
+        this.userHelper = userHelper;
     }
 
     @GetMapping("/{id}")
@@ -43,11 +46,22 @@ public class RecipesResource {
 
     @PostMapping
     @ResponseBody
-    public RecipeDTO createRecipe(@RequestBody CreateRecipeDTO recipe) {
-        final RecipeDTO mappedRecipe = map(recipe);
-        mappedRecipe.setId(42);
-        mappedRecipe.setCreationDate(Date.from(Instant.now()));
-        return mappedRecipe;
+    public RecipeDTO createRecipe(@RequestBody CreateRecipeDTO recipe, Principal principal) {
+        final UserDTO user = userHelper.getCurrentInternalUser(principal);
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+        }
+
+        recipe.setOwnerUri("/users/" + user.getUserId());
+
+        final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.update(recipe));
+
+        if (response.getRecipe() == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create recipe");
+        }
+
+        return response.getRecipe();
     }
 
     @PutMapping("/{id}")
@@ -59,16 +73,5 @@ public class RecipesResource {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecipe(@PathVariable("id") int id) {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    private RecipeDTO map(CreateRecipeDTO recipe) {
-        return new RecipeDTO(
-                0,
-                recipe.getTitle(),
-                recipe.getDescription(),
-                recipe.getImgUri(),
-                null,
-                recipe.getOwnerUri()
-        );
     }
 }
