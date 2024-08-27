@@ -5,6 +5,7 @@ import com.sks.fridge.service.data.repo.FridgeRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FridgeService {
@@ -20,5 +21,9 @@ public class FridgeService {
 
     public FridgeEntity save(FridgeEntity fridgeEntity) {
         return fridgeRepository.save(fridgeEntity);
+    }
+
+    public Optional<FridgeEntity> findByUserUri(String uri) {
+        return fridgeRepository.findByUserUriEquals(uri);
     }
 }

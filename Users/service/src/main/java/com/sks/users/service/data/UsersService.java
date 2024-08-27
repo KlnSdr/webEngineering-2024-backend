@@ -31,6 +31,9 @@ public class UsersService {
     }
 
     public String hashId(Long id) {
+        if (id == null) {
+            return null;
+        }
         return DigestUtils.sha256Hex(id.toString());
     }
 }

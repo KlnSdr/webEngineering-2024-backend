@@ -17,8 +17,8 @@ public class AutoInsert {
 
     public void run() {
         final FridgeEntity fridgeEntity = new FridgeEntity();
-        fridgeEntity.setUserUri("/users/42");
-        fridgeEntity.setProductQuantityMap(Map.of("/products/13", 5, "/products/42", 3));
+        fridgeEntity.setUserUri("/users/id/1");
+        fridgeEntity.setProductQuantityMap(Map.of("/products/1", 5, "/products/2", 3));
 
         fridgeService.save(fridgeEntity);
 

@@ -20,14 +20,22 @@ public class Listener implements UsersListener {
     @Override
     public void listen(UsersRequestMessage message) {
         final UsersResponseMessage response = switch (message.getRequestType()) {
-            case GET -> handleGet(message);
+            case GET_BY_ID -> handleGetById(message);
+            case GET_BY_IDP -> handleGetByIdp(message);
             case CREATE -> handleCreate(message);
         };
         sender.sendResponse(message, response);
     }
 
-    private UsersResponseMessage handleGet(UsersRequestMessage message) {
+    private UsersResponseMessage handleGetById(UsersRequestMessage message) {
         final Optional<UsersEntity> user = service.findById(message.getUserId());
+        final UsersResponseMessage response = new UsersResponseMessage();
+        user.ifPresent(usersEntity -> response.setUser(map(usersEntity)));
+        return response;
+    }
+
+    private UsersResponseMessage handleGetByIdp(UsersRequestMessage message) {
+        final Optional<UsersEntity> user = service.findByIdpHash(service.hashId(message.getIdpUserId()));
         final UsersResponseMessage response = new UsersResponseMessage();
         user.ifPresent(usersEntity -> response.setUser(map(usersEntity)));
         return response;

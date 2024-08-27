@@ -13,8 +13,15 @@ public class UsersRequestMessage extends BaseMessage {
 
     public static UsersRequestMessage findUser(Long userId) {
         UsersRequestMessage message = new UsersRequestMessage();
-        message.setRequestType(UsersRequestType.GET);
+        message.setRequestType(UsersRequestType.GET_BY_ID);
         message.setUserId(userId);
+        return message;
+    }
+
+    public static UsersRequestMessage findUserIdp(Long userId) {
+        UsersRequestMessage message = new UsersRequestMessage();
+        message.setRequestType(UsersRequestType.GET_BY_IDP);
+        message.setIdpUserId(userId);
         return message;
     }
 
