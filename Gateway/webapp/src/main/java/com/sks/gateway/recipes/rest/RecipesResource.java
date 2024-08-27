@@ -47,6 +47,19 @@ public class RecipesResource {
     @PostMapping
     @ResponseBody
     public RecipeDTO createRecipe(@RequestBody CreateRecipeDTO recipe, Principal principal) {
+        return createUpdateRecipe(recipe, principal);
+    }
+
+    @PutMapping("/{id}")
+    @ResponseBody
+    public RecipeDTO updateRecipe(@PathVariable("id") int id, @RequestBody CreateRecipeDTO recipe, Principal principal) {
+        if (id != recipe.getId()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Id in path and body do not match");
+        }
+        return createUpdateRecipe(recipe, principal);
+    }
+
+    private RecipeDTO createUpdateRecipe(CreateRecipeDTO recipe, Principal principal) {
         final UserDTO user = userHelper.getCurrentInternalUser(principal);
 
         if (user == null) {
@@ -62,12 +75,6 @@ public class RecipesResource {
         }
 
         return response.getRecipe();
-    }
-
-    @PutMapping("/{id}")
-    @ResponseBody
-    public RecipeDTO updateRecipe(@PathVariable("id") int id, @RequestBody RecipeDTO recipe) {
-        return recipe;
     }
 
     @DeleteMapping("/{id}")
