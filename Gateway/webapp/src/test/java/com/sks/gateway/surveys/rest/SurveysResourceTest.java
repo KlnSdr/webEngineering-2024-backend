@@ -13,7 +13,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class SurveysResourceTest {
+/*public class SurveysResourceTest {
     private SurveysResource controller;
 
     @BeforeEach

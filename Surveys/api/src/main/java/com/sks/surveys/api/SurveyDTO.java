@@ -1,16 +1,14 @@
 package com.sks.surveys.api;
 
-import com.sks.recipes.api.dto.RecipeDTO;
-
 import java.util.Date;
 import java.util.Map;
 
 public class SurveyDTO {
-    private int id;
+    private long id;
     private String title;
     private String[] participants;
     private String creator;
-    private Map<RecipeDTO, Integer> RecipeVote;
+    private Map<String, Integer> RecipeVote;
     private Date creationDate;
 
     public SurveyDTO() {
@@ -21,7 +19,7 @@ public class SurveyDTO {
         this.title = title;
     }
 
-    public SurveyDTO(int id, String title, String[] participants, String creator, Map<RecipeDTO, Integer> RecipeVote, Date creationDate) {
+    public SurveyDTO(long id, String title, String[] participants, String creator, Map<String, Integer> RecipeVote, Date creationDate) {
         this.id = id;
         this.title = title;
         this.participants = participants;
@@ -33,11 +31,11 @@ public class SurveyDTO {
 
 
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -65,11 +63,11 @@ public class SurveyDTO {
         this.creator = creator;
     }
 
-    public Map<RecipeDTO, Integer> getRecipeVote() {
+    public Map<String, Integer> getRecipeVote() {
         return RecipeVote;
     }
 
-    public void setRecipeVote(Map<RecipeDTO, Integer> recipeVote) {
+    public void setRecipeVote(Map<String, Integer> recipeVote) {
         RecipeVote = recipeVote;
     }
 

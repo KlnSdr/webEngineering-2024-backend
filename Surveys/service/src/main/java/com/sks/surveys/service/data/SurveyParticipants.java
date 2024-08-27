@@ -3,15 +3,12 @@ package com.sks.surveys.service.data;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "survey_votes")
-public class SurveyVote {
+@Table(name = "survey_participants")
+public class SurveyParticipants {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "vote_id")
+    @Column(name = "participant_id")
     private Long id;
-
-    @Column(name = "recipe_uri")
-    private String recipeUri;
 
     @Column(name = "user_uri")
     private String userUri;
@@ -20,8 +17,16 @@ public class SurveyVote {
     @JoinColumn(name = "survey_id")
     private SurveyEntity survey;
 
-    public SurveyVote() {
+    public SurveyParticipants() {
+
     }
+
+    public SurveyParticipants(SurveyEntity entity, String participant) {
+        this.survey = entity;
+        this.userUri = participant;
+    }
+
+
 
     // Getters and Setters
     public Long getId() {
@@ -30,14 +35,6 @@ public class SurveyVote {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getRecipeUri() {
-        return recipeUri;
-    }
-
-    public void setRecipeUri(String recipeUri) {
-        this.recipeUri = recipeUri;
     }
 
     public String getUserUri() {
@@ -55,4 +52,6 @@ public class SurveyVote {
     public void setSurvey(SurveyEntity survey) {
         this.survey = survey;
     }
+
+
 }
