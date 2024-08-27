@@ -23,8 +23,8 @@ public class Listener implements RecipesListener {
     @Override
     public void listen(RecipeRequestMessage message) {
         final List<RecipeDTO> response = switch (message.getRequestType()) {
-            case ByName -> getByName(message.getMessage());
-            case ByPRODUCT -> getByProduct(message.getProducts());
+            case SEARCH_BY_NAME -> getByName(message.getMessage());
+            case SEARCH_BY_PRODUCTS -> getByProduct(message.getProducts());
         };
         sender.sendResponse(message, new RecipeResponseMessage(response));
 

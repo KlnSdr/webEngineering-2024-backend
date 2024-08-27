@@ -17,12 +17,12 @@ public class RecipeRequestMessage extends BaseMessage {
 
     public RecipeRequestMessage(String searchString) {
         this.message = searchString;
-        this.requestType = RecipeRequestType.ByName;
+        this.requestType = RecipeRequestType.SEARCH_BY_NAME;
     }
 
     public RecipeRequestMessage(String[] products) {
         this.products = products;
-        this.requestType = RecipeRequestType.ByPRODUCT;
+        this.requestType = RecipeRequestType.SEARCH_BY_PRODUCTS;
     }
 
 
