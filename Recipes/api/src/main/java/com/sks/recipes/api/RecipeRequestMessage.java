@@ -24,6 +24,20 @@ public class RecipeRequestMessage extends BaseMessage {
         this.requestType = RecipeRequestType.SEARCH_BY_PRODUCTS;
     }
 
+    public static RecipeRequestMessage getById(long id) {
+        final RecipeRequestMessage message = new RecipeRequestMessage();
+        message.ids = new long[]{id};
+        message.requestType = RecipeRequestType.GET_BY_ID;
+        return message;
+    }
+
+    public static RecipeRequestMessage getById(long[] ids) {
+        final RecipeRequestMessage message = new RecipeRequestMessage();
+        message.ids = ids;
+        message.requestType = RecipeRequestType.GET_BY_ID;
+        return message;
+    }
+
     public String getMessage() {
         return message;
     }

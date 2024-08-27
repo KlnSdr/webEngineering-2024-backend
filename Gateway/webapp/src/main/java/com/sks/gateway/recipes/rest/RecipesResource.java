@@ -1,10 +1,14 @@
 package com.sks.gateway.recipes.rest;
 
+import com.sks.recipes.api.RecipeRequestMessage;
+import com.sks.recipes.api.RecipeResponseMessage;
+import com.sks.recipes.api.RecipeSender;
 import com.sks.recipes.api.dto.CreateRecipeDTO;
 import com.sks.recipes.api.dto.RecipeDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.Date;
@@ -12,18 +16,22 @@ import java.util.Date;
 @RestController
 @RequestMapping("/recipes")
 public class RecipesResource {
+    private final RecipeSender sender;
+
+    public RecipesResource(RecipeSender sender) {
+        this.sender = sender;
+    }
 
     @GetMapping("/{id}")
     @ResponseBody
     public RecipeDTO getRecipeById(@PathVariable("id") int id) {
-        return new RecipeDTO(
-                id,
-                "Flammkuchen",
-                "Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...",
-                "/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png",
-                Date.from(Instant.now()),
-                "/users/42"
-        );
+        final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getById(id));
+
+        if (response.getRecipes().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipe with id " + id + " not found");
+        }
+
+        return response.getRecipes().getFirst();
     }
 
     @PostMapping("/get-multiple")
