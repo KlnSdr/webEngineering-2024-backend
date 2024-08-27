@@ -1,5 +1,6 @@
 package com.sks.recipes.service;
 
+import com.sks.recipes.api.dto.CreateRecipeDTO;
 import com.sks.recipes.api.dto.RecipeDTO;
 import com.sks.recipes.api.*;
 
@@ -22,34 +23,42 @@ public class Listener implements RecipesListener {
 
     @Override
     public void listen(RecipeRequestMessage message) {
-        final List<RecipeDTO> response = switch (message.getRequestType()) {
+        final RecipeResponseMessage response = switch (message.getRequestType()) {
             case GET_BY_ID -> getById(message.getIds());
-            case UPDATE -> null;
+            case UPDATE -> update(message.getRecipe());
             case DELETE -> delete(message.getIds());
             case SEARCH_BY_NAME -> getByName(message.getMessage());
             case SEARCH_BY_PRODUCTS -> getByProduct(message.getProducts());
         };
-        sender.sendResponse(message, new RecipeResponseMessage(response));
+        sender.sendResponse(message, response);
     }
 
-    private List<RecipeDTO> getById(long[] id) {
-        return List.of();
+    private RecipeResponseMessage getById(long[] id) {
+        return null;
     }
 
-    private List<RecipeDTO> update(RecipeDTO recipe) {
-        return List.of(recipe);
+    private RecipeResponseMessage update(CreateRecipeDTO recipe) {
+        return null;
     }
 
-    private List<RecipeDTO> delete(long[] ids) {
-        return List.of();
+    private RecipeResponseMessage delete(long[] ids) {
+        return null;
     }
 
-    private List<RecipeDTO> getByName(String searchString) {
-        return service.findByName(searchString).stream().map(this::map).toList();
+    private RecipeResponseMessage getByName(String searchString) {
+        final List<RecipeDTO> recipes = service.findByName(searchString).stream().map(this::map).toList();
+
+        final RecipeResponseMessage response = new RecipeResponseMessage();
+        response.setRecipes(recipes);
+        return response;
     }
 
-    private List<RecipeDTO> getByProduct(String[] products) {
-        return service.findByProducts(List.of(products)).stream().map(this::map).toList();
+    private RecipeResponseMessage getByProduct(String[] products) {
+        final List<RecipeDTO> recipes = service.findByProducts(List.of(products)).stream().map(this::map).toList();
+
+        final RecipeResponseMessage response = new RecipeResponseMessage();
+        response.setRecipes(recipes);
+        return response;
     }
 
     private RecipeDTO map(RecipeEntity recipeEntity) {

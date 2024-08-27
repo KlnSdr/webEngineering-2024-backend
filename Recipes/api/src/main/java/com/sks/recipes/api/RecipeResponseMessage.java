@@ -34,6 +34,8 @@ public class RecipeResponseMessage extends BaseMessage {
         return recipes;
     }
 
-
+    public void setRecipes(List<RecipeDTO> recipes) {
+        this.recipes = recipes;
+    }
 
 }
