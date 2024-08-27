@@ -36,19 +36,9 @@ public class RecipesResource {
 
     @PostMapping("/get-multiple")
     @ResponseBody
-    public RecipeDTO[] getMultipleRecipesById(@RequestBody int[] ids) {
-        RecipeDTO[] recipes = new RecipeDTO[ids.length];
-        for (int i = 0; i < ids.length; i++) {
-            recipes[i] = new RecipeDTO(
-                    ids[i],
-                    "Flammkuchen",
-                    "Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...",
-                    "/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png",
-                    Date.from(Instant.now()),
-                    "/users/42"
-            );
-        }
-        return recipes;
+    public RecipeDTO[] getMultipleRecipesById(@RequestBody long[] ids) {
+        final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getById(ids));
+        return response.getRecipes().toArray(new RecipeDTO[0]);
     }
 
     @PostMapping
