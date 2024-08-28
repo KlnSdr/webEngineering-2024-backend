@@ -45,6 +45,13 @@ public class RecipeRequestMessage extends BaseMessage {
         return message;
     }
 
+    public static RecipeRequestMessage delete(long id) {
+        final RecipeRequestMessage message = new RecipeRequestMessage();
+        message.ids = new long[]{id};
+        message.requestType = RecipeRequestType.DELETE;
+        return message;
+    }
+
     public String getMessage() {
         return message;
     }

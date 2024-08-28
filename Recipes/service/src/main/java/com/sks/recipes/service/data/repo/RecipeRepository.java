@@ -14,5 +14,5 @@ public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
 
     List<RecipeEntity> findByProductUrisIn(Collection<String> productUris);
 
-    long deleteById(long id);
+    void deleteById(long id);
 }

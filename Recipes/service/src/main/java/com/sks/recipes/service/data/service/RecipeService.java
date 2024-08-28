@@ -24,7 +24,9 @@ public class RecipeService {
     }
 
     public boolean deleteById(long id) {
-        return recipeRepository.deleteById(id) == 1;
+        recipeRepository.deleteById(id);
+
+        return findById(id).isEmpty();
     }
 
     public List<RecipeEntity> findByName(String searchString) {

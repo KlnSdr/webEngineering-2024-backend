@@ -79,6 +79,12 @@ public class RecipesResource {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecipe(@PathVariable("id") int id) {
+        final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.delete(id));
+
+        if (!response.isWasSuccessful()) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete recipe with id " + id);
+        }
+
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
