@@ -9,14 +9,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class UsersResourceTest {
 
@@ -72,5 +72,19 @@ public class UsersResourceTest {
         });
 
         assertEquals("User with id " + userId + " not found", exception.getReason());
+    }
+
+    @Test
+    void getUserByIdThrowsExceptionOnMessageError() {
+        Long userId = 1L;
+        UsersResponseMessage responseMessage = new UsersResponseMessage();
+        responseMessage.setDidError(true);
+        doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(sender).sendRequest(any(UsersRequestMessage.class));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            usersResource.getUserById(userId);
+        });
+
+        assertEquals("Internal Server Error", exception.getReason());
     }
 }

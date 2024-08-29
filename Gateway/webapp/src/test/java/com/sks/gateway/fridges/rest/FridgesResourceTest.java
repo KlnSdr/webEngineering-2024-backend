@@ -1,6 +1,7 @@
 package com.sks.gateway.fridges.rest;
 
 import com.sks.fridge.api.*;
+import com.sks.gateway.common.MessageErrorHandler;
 import com.sks.gateway.fridges.dto.FridgeItemDTO;
 import com.sks.gateway.util.AccessVerifier;
 import com.sks.products.api.ProductDTO;
@@ -20,8 +21,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class FridgesResourceTest {
 
@@ -31,6 +31,8 @@ public class FridgesResourceTest {
     private FridgeSender fridgeSender;
     @Mock
     private AccessVerifier accessVerifier;
+    @Mock
+    private MessageErrorHandler messageErrorHandler;
 
     private FridgesResource controller;
 
@@ -39,7 +41,8 @@ public class FridgesResourceTest {
         productsSender = mock(ProductsSender.class);
         fridgeSender = mock(FridgeSender.class);
         accessVerifier = mock(AccessVerifier.class);
-        controller = new FridgesResource(productsSender, fridgeSender, accessVerifier, null);
+        messageErrorHandler = mock(MessageErrorHandler.class);
+        controller = new FridgesResource(productsSender, fridgeSender, accessVerifier, messageErrorHandler);
     }
 
     @Test
@@ -60,6 +63,22 @@ public class FridgesResourceTest {
 
         assertEquals(1, result.size());
         assertEquals("Milk", result.getFirst().getName());
+    }
+
+    @Test
+    void getFridgeItemsReturns500WhenErrorOnMessageSend() {
+        final long userId = 1L;
+        final FridgeResponseMessage responseMessage = new FridgeResponseMessage();
+        responseMessage.setDidError(true);
+        when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(responseMessage);
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
+        doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(messageErrorHandler).handle(responseMessage);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.getFridgeItems(userId, null);
+        });
+
+        assertEquals("Internal Server Error", exception.getReason());
     }
 
     @Test
@@ -102,6 +121,22 @@ public class FridgesResourceTest {
     }
 
     @Test
+    void addOrUpdateFridgeItemsReturns500WhenErrorOnMessageSend() {
+        final long userId = 1L;
+        final FridgeResponseMessage responseMessage = new FridgeResponseMessage();
+        responseMessage.setDidError(true);
+        when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(responseMessage);
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
+        doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(messageErrorHandler).handle(responseMessage);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.addOrUpdateFridgeItems(userId, null, null);
+        });
+
+        assertEquals("Internal Server Error", exception.getReason());
+    }
+
+    @Test
     void deleteFridgeItemReturnsNoContentWhenRequestIsValid() {
         long userId = 1L;
         long productId = 1L;
@@ -130,5 +165,21 @@ public class FridgesResourceTest {
         });
 
         assertEquals("Error", exception.getReason());
+    }
+
+    @Test
+    void deleteFridgeItemsReturns500WhenErrorOnMessageSend() {
+        final long userId = 1L;
+        final FridgeResponseMessage responseMessage = new FridgeResponseMessage();
+        responseMessage.setDidError(true);
+        when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(responseMessage);
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
+        doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(messageErrorHandler).handle(responseMessage);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.deleteFridgeItem(userId, 42L, null);
+        });
+
+        assertEquals("Internal Server Error", exception.getReason());
     }
 }

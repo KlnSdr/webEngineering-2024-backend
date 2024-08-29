@@ -1,5 +1,6 @@
 package com.sks.gateway.users;
 
+import com.sks.gateway.common.MessageErrorHandler;
 import com.sks.users.api.UsersRequestMessage;
 import com.sks.users.api.UsersResponseMessage;
 import com.sks.users.api.UsersSender;
@@ -33,6 +34,9 @@ public class OAuthHandlerTest {
 
     @Mock
     private OAuth2User oAuth2User;
+
+    @Mock
+    private MessageErrorHandler messageErrorHandler;
 
     @InjectMocks
     private OAuthHandler oAuthHandler;
@@ -79,5 +83,19 @@ public class OAuthHandlerTest {
         oAuthHandler.onAuthenticationSuccess(request, response, authentication);
 
         verify(response).sendRedirect(any());
+    }
+
+    @Test
+    void onAuthenticationSuccess_Throws500OnMessageError() throws IOException {
+        when(authentication.getPrincipal()).thenReturn(oAuth2User);
+        when(oAuth2User.getAttribute("username")).thenReturn("testUser");
+        when(oAuth2User.getAttribute("id")).thenReturn(1);
+        UsersResponseMessage userResponse = new UsersResponseMessage();
+        userResponse.setDidError(true);
+        when(usersSender.sendRequest(any(UsersRequestMessage.class))).thenReturn(userResponse);
+
+        oAuthHandler.onAuthenticationSuccess(request, response, authentication);
+
+        verify(messageErrorHandler).handle(userResponse);
     }
 }
