@@ -1,5 +1,6 @@
 package com.sks.gateway.products.rest;
 
+import com.sks.gateway.common.MessageErrorHandler;
 import com.sks.products.api.ProductDTO;
 import com.sks.products.api.ProductsRequestMessage;
 import com.sks.products.api.ProductsResponseMessage;
@@ -20,9 +21,11 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/products")
 public class ProductsResource {
     private final ProductsSender productsSender;
+    private final MessageErrorHandler messageErrorHandler;
 
-    public ProductsResource(ProductsSender productsSender) {
+    public ProductsResource(ProductsSender productsSender, MessageErrorHandler messageErrorHandler) {
         this.productsSender = productsSender;
+        this.messageErrorHandler = messageErrorHandler;
     }
 
     @Operation(summary = "Get all products")
@@ -41,6 +44,11 @@ public class ProductsResource {
     @ResponseBody
     public ProductDTO[] getAllProducts() {
         final ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage());
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         return response.getProducts();
     }
 
@@ -62,6 +70,11 @@ public class ProductsResource {
     public ProductDTO getProductById(
             @Parameter(description = "ID of the product to be fetched") @PathVariable("id") long id) {
         final ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage(new long[] {id}));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         final ProductDTO[] product = response.getProducts();
 
         if (product == null || product.length == 0) {
@@ -89,6 +102,11 @@ public class ProductsResource {
     public ProductDTO[] getMultiple(
             @Parameter(description = "IDs of the products to be fetched") @RequestBody long[] ids) {
         final ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage(ids));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         final ProductDTO[] products = response.getProducts();
 
         if (products == null || products.length != ids.length) {

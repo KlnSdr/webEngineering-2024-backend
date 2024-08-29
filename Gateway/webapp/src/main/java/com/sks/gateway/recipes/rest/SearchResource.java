@@ -1,5 +1,6 @@
 package com.sks.gateway.recipes.rest;
 
+import com.sks.gateway.common.MessageErrorHandler;
 import com.sks.recipes.api.RecipeRequestMessage;
 import com.sks.recipes.api.RecipeResponseMessage;
 import com.sks.recipes.api.RecipeSender;
@@ -23,9 +24,11 @@ import java.util.List;
 @RequestMapping("/search/recipes")
 public class SearchResource {
     private final RecipeSender recipeSender;
+    private final MessageErrorHandler messageErrorHandler;
 
-    public SearchResource(RecipeSender recipeSender) {
+    public SearchResource(RecipeSender recipeSender, MessageErrorHandler messageErrorHandler) {
         this.recipeSender = recipeSender;
+        this.messageErrorHandler = messageErrorHandler;
     }
 
     @Operation(summary = "Get all recipes by search string")
@@ -41,6 +44,11 @@ public class SearchResource {
     public List<RecipeDTO> getAllRecipesBySearchString(
             @Parameter(description = "Search string to find recipes") @RequestParam("searchString") String searchString) {
         final RecipeResponseMessage response = recipeSender.sendRequest(new RecipeRequestMessage(searchString));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         final List<RecipeDTO> recipes = response.getRecipes();
 
         if (recipes == null || recipes.isEmpty()) {
@@ -63,6 +71,11 @@ public class SearchResource {
     public List<RecipeDTO> searchRecipeByProducts(
             @Parameter(description = "List of products to search recipes by") @RequestBody String[] products) {
         final RecipeResponseMessage response = recipeSender.sendRequest(new RecipeRequestMessage(products));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         final List<RecipeDTO> recipes = response.getRecipes();
 
         if (recipes == null || recipes.isEmpty()) {
