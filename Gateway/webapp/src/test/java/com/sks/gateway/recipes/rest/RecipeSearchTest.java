@@ -28,7 +28,7 @@ public class RecipeSearchTest {
     @BeforeEach
     public void setUp() {
         sender = mock(RecipeSender.class);
-        controller = new SearchResource(sender);
+        controller = new SearchResource(sender, null);
     }
 
     @Test

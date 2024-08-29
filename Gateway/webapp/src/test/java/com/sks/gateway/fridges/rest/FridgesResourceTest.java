@@ -39,7 +39,7 @@ public class FridgesResourceTest {
         productsSender = mock(ProductsSender.class);
         fridgeSender = mock(FridgeSender.class);
         accessVerifier = mock(AccessVerifier.class);
-        controller = new FridgesResource(productsSender, fridgeSender, accessVerifier);
+        controller = new FridgesResource(productsSender, fridgeSender, accessVerifier, null);
     }
 
     @Test

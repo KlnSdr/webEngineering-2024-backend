@@ -22,7 +22,7 @@ public class ProductsResourceTest {
     @BeforeEach
     public void setUp() {
         sender = mock(ProductsSender.class);
-        controller = new ProductsResource(sender);
+        controller = new ProductsResource(sender, null);
     }
 
     @Test
