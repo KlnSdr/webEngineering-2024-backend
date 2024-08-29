@@ -1,6 +1,7 @@
 package com.sks.recipes.api;
 
 import com.sks.base.api.BaseSenderImpl;
+import com.sks.base.api.exceptions.MessageConversionException;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -17,13 +18,16 @@ public class RecipeSenderImpl extends BaseSenderImpl<RecipeRequestMessage, Recip
         if (response instanceof RecipeResponseMessage) {
             return (RecipeResponseMessage) response;
         }
-        return createErrorResponse("Invalid response");
+        final RecipeResponseMessage errResponse = createErrorResponse("Invalid response");
+        errResponse.setException(new MessageConversionException("Invalid response"));
+        return errResponse;
     }
 
     @Override
     protected RecipeResponseMessage createErrorResponse(String errorMessage) {
         RecipeResponseMessage response = new RecipeResponseMessage();
-        response.setMessage(errorMessage);
+        response.setErrorMessage(errorMessage);
+        response.setDidError(true);
         return response;
     }
 }

@@ -32,17 +32,32 @@ public class Listener implements FridgeListener {
     public void listen(Message message) {
         final Object obj = converter.fromMessage(message);
         if (!(obj instanceof FridgeRequestMessage request)) {
+            // can't send a response if the message is not a base message, because we don't know the correlation ID
             log.error("Received message is not an instance of FridgeRequestMessage");
             log.error("Received message: {}", obj);
             return;
         }
 
-        final FridgeResponseMessage response = switch (request.getRequestType()) {
-            case GET -> handleGet(request);
-            case UPDATE -> handleUpdate(request);
-            case DELETE -> handleDelete(request);
-        };
+        FridgeResponseMessage response;
+        try {
+            response = switch (request.getRequestType()) {
+                case GET -> handleGet(request);
+                case UPDATE -> handleUpdate(request);
+                case DELETE -> handleDelete(request);
+            };
+        } catch (Exception e) {
+            log.error("Error while processing message", e);
+            response = buildErrorResponse(e);
+        }
         sender.sendResponse(request, response);
+    }
+
+    private FridgeResponseMessage buildErrorResponse(Exception e) {
+        final FridgeResponseMessage response = new FridgeResponseMessage();
+        response.setDidError(true);
+        response.setErrorMessage("Error while processing message");
+        response.setException(e);
+        return response;
     }
 
     private FridgeResponseMessage handleGet(FridgeRequestMessage request) {

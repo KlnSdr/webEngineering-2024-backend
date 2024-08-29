@@ -91,7 +91,7 @@ public class FridgesResourceTest {
         FridgeResponseMessage fridgeResponse = mock(FridgeResponseMessage.class);
         when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(fridgeResponse);
         when(fridgeResponse.isWasSuccess()).thenReturn(false);
-        when(fridgeResponse.getMessage()).thenReturn("Error");
+        when(fridgeResponse.getErrorMessage()).thenReturn("Error");
         when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
@@ -122,7 +122,7 @@ public class FridgesResourceTest {
         FridgeResponseMessage fridgeResponse = mock(FridgeResponseMessage.class);
         when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(fridgeResponse);
         when(fridgeResponse.isWasSuccess()).thenReturn(false);
-        when(fridgeResponse.getMessage()).thenReturn("Error");
+        when(fridgeResponse.getErrorMessage()).thenReturn("Error");
         when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {

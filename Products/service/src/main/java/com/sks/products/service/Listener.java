@@ -21,12 +21,26 @@ public class Listener implements ProductsListener {
 
     @Override
     public void listen(ProductsRequestMessage message) {
-        final ProductDTO[] payload = switch (message.getRequestType()) {
-            case ALL -> getAll();
-            case FILTERED -> getFiltered(message.getProductId());
-        };
+        ProductsResponseMessage response;
+        try {
+            final ProductDTO[] payload = switch (message.getRequestType()) {
+                case ALL -> getAll();
+                case FILTERED -> getFiltered(message.getProductId());
+            };
+            response = new ProductsResponseMessage(payload);
+        } catch (Exception e) {
+            response = buildErrorResponse(e);
+        }
 
-        sender.sendResponse(message, new ProductsResponseMessage(payload));
+        sender.sendResponse(message, response);
+    }
+
+    private ProductsResponseMessage buildErrorResponse(Exception e) {
+        final ProductsResponseMessage response = new ProductsResponseMessage();
+        response.setDidError(true);
+        response.setErrorMessage("Error while processing message");
+        response.setException(e);
+        return response;
     }
 
     private ProductDTO[] getAll() {

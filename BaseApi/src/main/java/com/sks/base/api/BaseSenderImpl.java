@@ -1,5 +1,6 @@
 package com.sks.base.api;
 
+import com.sks.base.api.exceptions.GatewayTimeoutException;
 import org.springframework.amqp.core.AmqpTemplate;
 
 /**
@@ -30,9 +31,9 @@ public abstract class BaseSenderImpl<I extends BaseMessage, O extends BaseMessag
             return messageConfig;
         });
 
-        Object response = amqpTemplate.receiveAndConvert(config.getResponseQueueName(), 5000); // Timeout for 5 seconds
+        final Object response = amqpTemplate.receiveAndConvert(config.getResponseQueueName(), 5000); // Timeout for 5 seconds
         if (response == null) {
-            return createErrorResponse("No response received");
+            return createTimeoutErrorResponse();
         }
         return convertResponse(response);
     }
@@ -43,6 +44,14 @@ public abstract class BaseSenderImpl<I extends BaseMessage, O extends BaseMessag
             messageConfig.getMessageProperties().setCorrelationId(request.getCorrelationId());
             return messageConfig;
         });
+    }
+
+    private O createTimeoutErrorResponse() {
+        final O response = createErrorResponse("Request timed out");
+        response.setDidError(true);
+        response.setErrorMessage("Request timed out");
+        response.setException(new GatewayTimeoutException("Request timed out"));
+        return response;
     }
 
     /**

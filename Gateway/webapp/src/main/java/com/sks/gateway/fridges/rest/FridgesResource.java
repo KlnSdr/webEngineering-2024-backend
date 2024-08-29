@@ -96,7 +96,7 @@ public class FridgesResource {
         final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.updateByUserId(userId, items));
 
         if (!response.isWasSuccess()) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, response.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, response.getErrorMessage());
         }
 
         final FridgeDTO fridge = response.getFridgeContent();
@@ -122,7 +122,7 @@ public class FridgesResource {
 
         final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.deleteByUserAndProduct(userId, productId));
         if (!response.isWasSuccess()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, response.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, response.getErrorMessage());
         }
         return ResponseEntity.noContent().build();
     }
