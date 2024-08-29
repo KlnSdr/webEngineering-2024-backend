@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.sql.Timestamp;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -17,14 +18,18 @@ public class SurveyEntity {
     @Column(name = "survey_title")
     private String title;
 
-    @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<SurveyParticipants> participants = new HashSet<>();
 
     @Column(name = "owner_uri")
     private String ownerUri;
 
-    @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<SurveyVote> votes = new HashSet<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "survey_options", joinColumns = @JoinColumn(name = "survey_id"))
+    private List<String> options;
 
     @Column(name = "Survey_Creation_Date", nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp creationDate;
@@ -32,13 +37,12 @@ public class SurveyEntity {
     public SurveyEntity() {
     }
 
-    public SurveyEntity(long id, String title, Set<SurveyParticipants> participants, String ownerUri, Set<SurveyVote> votes, Timestamp creationDate) {
-        this.id = id;
-        this.title = title;
-        this.participants = participants;
-        this.ownerUri = ownerUri;
-        this.votes = votes;
-        this.creationDate = creationDate;
+    public List<String> getOptions() {
+        return options;
+    }
+
+    public void setOptions(List<String> options) {
+        this.options = options;
     }
 
     public Set<SurveyVote> getVotes() {

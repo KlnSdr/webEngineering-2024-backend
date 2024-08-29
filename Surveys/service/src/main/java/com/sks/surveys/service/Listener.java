@@ -5,6 +5,9 @@ import com.sks.surveys.service.data.SurveyEntity;
 import com.sks.surveys.service.data.SurveyParticipants;
 import com.sks.surveys.service.data.SurveyService;
 import com.sks.surveys.service.data.SurveyVote;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
@@ -14,24 +17,30 @@ import java.util.*;
 public class Listener implements SurveyListener {
     private final SurveySender sender;
     private final SurveyService service;
+    private final Jackson2JsonMessageConverter converter;
 
-    public Listener(SurveySender sender, SurveyService service) {
+    public Listener(SurveySender sender, SurveyService service, @Qualifier("surveysMessageConverter") Jackson2JsonMessageConverter converter) {
         this.sender = sender;
         this.service = service;
+        this.converter = converter;
     }
 
     @Override
-    public void listen(SurveyRequestMessage message) {
-        final SurveyResponseMessage response = switch (message.getRequestType()) {
-            case SurveyById -> getSurveyById(message.getsurveyId());
-            case SurveyByOwner -> getSurveysByOwner(message.getOwnerUri());
-            case SaveSurvey -> handleSaveSurvey(message.getSurvey());
-            case DeleteSurvey -> handleDeleteSurvey(message.getsurveyId());
-            case UpdateSurvey -> handleUpdateSurvey(message.getSurvey());
-            case VoteSurvey -> handleVoteSurvey(message.getsurveyId(), message.getRecipeUri(), message.getUserUri());
+    public void listen(Message message) {
+        final Object obj = converter.fromMessage(message);
+        if (!(obj instanceof SurveyRequestMessage request)) {
+            return;
+        }
+        final SurveyResponseMessage response = switch (request.getRequestType()) {
+            case SurveyById -> getSurveyById(request.getSurveyId());
+            case SurveyByOwner -> getSurveysByOwner(request.getOwnerUri());
+            case SaveSurvey -> handleSaveSurvey(request.getSurvey());
+            case DeleteSurvey -> handleDeleteSurvey(request.getSurveyId());
+            case UpdateSurvey -> handleUpdateSurvey(request.getSurvey());
+            case VoteSurvey -> handleVoteSurvey(request.getSurveyId(), request.getRecipeUri(), request.getUserUri());
         };
 
-        sender.sendResponse(message, (response));
+        sender.sendResponse(request, (response));
     }
 
     private SurveyResponseMessage getSurveyById(long surveyId) {
@@ -70,6 +79,7 @@ public class Listener implements SurveyListener {
         }
         entity.setParticipants(participants);
         entity.setVotes(new HashSet<>());
+        entity.setOptions(survey.getOptions());
         try{
             service.save(entity);
             response.setSurvey(new SurveyDTO[]{map(entity)});
@@ -105,6 +115,7 @@ public class Listener implements SurveyListener {
             }
             updatedEntity.setParticipants(participants);
             updatedEntity.setVotes(new HashSet<>());
+            updatedEntity.setOptions(survey.getOptions());
             try{
                 service.save(updatedEntity);
                 response.setSurvey(new SurveyDTO[]{map(updatedEntity)});
@@ -116,12 +127,17 @@ public class Listener implements SurveyListener {
     }
 
     private SurveyResponseMessage handleVoteSurvey(long surveyId, String recipeUri, String userUri) {
+        Optional<SurveyEntity> entity = service.getSurveyById(surveyId);
         SurveyResponseMessage response = new SurveyResponseMessage();
         SurveyVote vote = new SurveyVote();
-        vote.setRecipeUri(recipeUri);
-        vote.setUserUri(userUri);
-        Optional<SurveyEntity> entity = service.getSurveyById(surveyId);
         if (entity.isPresent()) {
+            if (!entity.get().getOptions().contains(recipeUri)) {
+                response.setMessage("Recipe not found in survey options");
+                return response;
+            }
+            vote.setRecipeUri(recipeUri);
+            vote.setUserUri(userUri);
+            vote.setSurvey(entity.get());
             SurveyEntity updatedEntity = entity.get();
             updatedEntity.getVotes().add(vote);
             try{
@@ -143,7 +159,7 @@ public class Listener implements SurveyListener {
          for (SurveyVote vote : entity.getVotes()) {
             recipeVotes.put(vote.getRecipeUri(), recipeVotes.getOrDefault(vote.getRecipeUri(), 0) + 1);
          }
-         return new SurveyDTO(entity.getId(), entity.getTitle(), participants, entity.getOwnerUri(), recipeVotes, entity.getCreationDate());
+         return new SurveyDTO(entity.getId(), entity.getTitle(), participants, entity.getOwnerUri(), recipeVotes, entity.getOptions(), entity.getCreationDate());
     }
 
 }

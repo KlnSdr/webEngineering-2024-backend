@@ -44,7 +44,7 @@ public class SurveyRequestMessage extends BaseMessage {
         this.message = message;
     }
 
-    public long getsurveyId() {
+    public long getSurveyId() {
         return surveyId;
     }
 

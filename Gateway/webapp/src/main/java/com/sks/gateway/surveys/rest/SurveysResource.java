@@ -32,7 +32,7 @@ public class SurveysResource {
     @GetMapping("user/{userId}")
     @ResponseBody
     public SurveyDTO[] getSurveysByUserId(@PathVariable("userId") int userId) {
-        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/users/" + userId, RequestType.SurveyByOwner));
+        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/users/id/" + userId, RequestType.SurveyByOwner));
         if (response.getSurvey() == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No surveys found");}
 
@@ -42,6 +42,9 @@ public class SurveysResource {
     @PostMapping
     @ResponseBody
     public SurveyDTO createSurvey(@RequestBody SurveyDTO survey) {
+        if (!isSurveyValid(survey)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Survey is not valid");
+        }
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(survey, RequestType.SaveSurvey));
         if(response.getSurvey()==null){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create survey");
@@ -65,6 +68,9 @@ public class SurveysResource {
         if (survey.getId() != id) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Survey id does not match");
         }
+        if (!isSurveyValid(survey)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Survey is not valid");
+        }
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(survey, RequestType.UpdateSurvey));
         if(response.getSurvey()==null){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update survey");
@@ -82,16 +88,24 @@ public class SurveysResource {
         return response.getSurvey()[0];
     }
 
-    private SurveyDTO map(SurveyDTO survey) {
-        return new SurveyDTO(
-                0,
-                survey.getTitle(),
-                survey.getParticipants(),
-                survey.getCreator(),
-                survey.getRecipeVote(),
-                null
-        );
+
+    private boolean isSurveyValid(SurveyDTO survey) {
+        if(survey.getTitle().isEmpty()){
+            return false;
+        }
+        if (survey.getParticipants() == null) {
+            return false;
+        }
+        if (survey.getCreator() == null) {
+            return false;
+        }
+        if (survey.getOptions() == null || survey.getOptions().isEmpty()) {
+            return false;
+        }
+        return true;
+
     }
+
 
 
 }
