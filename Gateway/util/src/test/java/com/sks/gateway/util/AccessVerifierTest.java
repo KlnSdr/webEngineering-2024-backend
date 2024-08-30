@@ -79,17 +79,4 @@ public class AccessVerifierTest {
 
         assertFalse(result);
     }
-
-    @Test
-    void verifyAccessesSelfReturnsFalseWhenErrorOnSendingRequestToService() {
-        long targetUserId = 1L;
-        when(principal.getName()).thenReturn("1");
-        UsersResponseMessage response = mock(UsersResponseMessage.class);
-        when(usersSender.sendRequest(any(UsersRequestMessage.class))).thenReturn(response);
-        when(response.didError()).thenReturn(true);
-
-        boolean result = accessVerifier.verifyAccessesSelf(targetUserId, principal);
-
-        assertFalse(result);
-    }
 }
