@@ -1,14 +1,10 @@
 package com.sks.gateway.util;
 
 import com.sks.users.api.UserDTO;
-import com.sks.users.api.UsersRequestMessage;
 import com.sks.users.api.UsersResponseMessage;
-import com.sks.users.api.UsersSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.security.Principal;
 
@@ -20,17 +16,18 @@ import static org.mockito.Mockito.when;
 
 public class AccessVerifierTest {
     @Mock
-    private UsersSender usersSender;
+    private UserHelper userHelper;
 
     @Mock
     private Principal principal;
 
-    @InjectMocks
     private AccessVerifier accessVerifier;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        userHelper = mock(UserHelper.class);
+        principal = mock(Principal.class);
+        accessVerifier = new AccessVerifier(userHelper);
     }
 
     @Test
@@ -40,7 +37,7 @@ public class AccessVerifierTest {
         UsersResponseMessage response = mock(UsersResponseMessage.class);
         UserDTO user = new UserDTO();
         user.setUserId(1L);
-        when(usersSender.sendRequest(any(UsersRequestMessage.class))).thenReturn(response);
+        when(userHelper.getCurrentInternalUser(any())).thenReturn(user);
         when(response.getUser()).thenReturn(user);
 
         boolean result = accessVerifier.verifyAccessesSelf(targetUserId, principal);
@@ -55,7 +52,7 @@ public class AccessVerifierTest {
         UsersResponseMessage response = mock(UsersResponseMessage.class);
         UserDTO user = new UserDTO();
         user.setUserId(2L);
-        when(usersSender.sendRequest(any(UsersRequestMessage.class))).thenReturn(response);
+        when(userHelper.getCurrentInternalUser(any())).thenReturn(user);
         when(response.getUser()).thenReturn(user);
 
         boolean result = accessVerifier.verifyAccessesSelf(targetUserId, principal);
@@ -76,9 +73,7 @@ public class AccessVerifierTest {
     void verifyAccessesSelfReturnsFalseWhenUserNotFound() {
         long targetUserId = 1L;
         when(principal.getName()).thenReturn("1");
-        UsersResponseMessage response = mock(UsersResponseMessage.class);
-        when(usersSender.sendRequest(any(UsersRequestMessage.class))).thenReturn(response);
-        when(response.getUser()).thenReturn(null);
+        when(userHelper.getCurrentInternalUser(any())).thenReturn(null);
 
         boolean result = accessVerifier.verifyAccessesSelf(targetUserId, principal);
 

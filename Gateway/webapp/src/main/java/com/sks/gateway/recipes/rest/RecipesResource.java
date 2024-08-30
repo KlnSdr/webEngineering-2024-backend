@@ -1,76 +1,90 @@
 package com.sks.gateway.recipes.rest;
 
+import com.sks.gateway.util.UserHelper;
+import com.sks.recipes.api.RecipeRequestMessage;
+import com.sks.recipes.api.RecipeResponseMessage;
+import com.sks.recipes.api.RecipeSender;
 import com.sks.recipes.api.dto.CreateRecipeDTO;
 import com.sks.recipes.api.dto.RecipeDTO;
+import com.sks.users.api.UserDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.util.Date;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/recipes")
 public class RecipesResource {
+    private final UserHelper userHelper;
+    private final RecipeSender sender;
+
+    public RecipesResource(RecipeSender sender, UserHelper userHelper) {
+        this.sender = sender;
+        this.userHelper = userHelper;
+    }
 
     @GetMapping("/{id}")
     @ResponseBody
     public RecipeDTO getRecipeById(@PathVariable("id") int id) {
-        return new RecipeDTO(
-                id,
-                "Flammkuchen",
-                "Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...",
-                "/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png",
-                Date.from(Instant.now()),
-                "/users/42"
-        );
+        final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getById(id));
+
+        if (response.getRecipes().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipe with id " + id + " not found");
+        }
+
+        return response.getRecipes().getFirst();
     }
 
     @PostMapping("/get-multiple")
     @ResponseBody
-    public RecipeDTO[] getMultipleRecipesById(@RequestBody int[] ids) {
-        RecipeDTO[] recipes = new RecipeDTO[ids.length];
-        for (int i = 0; i < ids.length; i++) {
-            recipes[i] = new RecipeDTO(
-                    ids[i],
-                    "Flammkuchen",
-                    "Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...",
-                    "/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png",
-                    Date.from(Instant.now()),
-                    "/users/42"
-            );
-        }
-        return recipes;
+    public RecipeDTO[] getMultipleRecipesById(@RequestBody long[] ids) {
+        final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getById(ids));
+        return response.getRecipes().toArray(new RecipeDTO[0]);
     }
 
     @PostMapping
     @ResponseBody
-    public RecipeDTO createRecipe(@RequestBody CreateRecipeDTO recipe) {
-        final RecipeDTO mappedRecipe = map(recipe);
-        mappedRecipe.setId(42);
-        mappedRecipe.setCreationDate(Date.from(Instant.now()));
-        return mappedRecipe;
+    public RecipeDTO createRecipe(@RequestBody CreateRecipeDTO recipe, Principal principal) {
+        return createUpdateRecipe(recipe, principal);
     }
 
     @PutMapping("/{id}")
     @ResponseBody
-    public RecipeDTO updateRecipe(@PathVariable("id") int id, @RequestBody RecipeDTO recipe) {
-        return recipe;
+    public RecipeDTO updateRecipe(@PathVariable("id") int id, @RequestBody CreateRecipeDTO recipe, Principal principal) {
+        if (id != recipe.getId()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Id in path and body do not match");
+        }
+        return createUpdateRecipe(recipe, principal);
+    }
+
+    private RecipeDTO createUpdateRecipe(CreateRecipeDTO recipe, Principal principal) {
+        final UserDTO user = userHelper.getCurrentInternalUser(principal);
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+        }
+
+        recipe.setOwnerUri("/users/" + user.getUserId());
+
+        final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.update(recipe));
+
+        if (response.getRecipe() == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create recipe");
+        }
+
+        return response.getRecipe();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecipe(@PathVariable("id") int id) {
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
+        final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.delete(id));
 
-    private RecipeDTO map(CreateRecipeDTO recipe) {
-        return new RecipeDTO(
-                0,
-                recipe.getTitle(),
-                recipe.getDescription(),
-                recipe.getImgUri(),
-                null,
-                recipe.getOwnerUri()
-        );
+        if (!response.isWasSuccessful()) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete recipe with id " + id);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

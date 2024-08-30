@@ -1,6 +1,9 @@
 package com.sks.recipes.api;
 
 public enum RecipeRequestType {
-    ByName,
-    ByPRODUCT
+    GET_BY_ID,
+    UPDATE,
+    DELETE,
+    SEARCH_BY_NAME,
+    SEARCH_BY_PRODUCTS
 }

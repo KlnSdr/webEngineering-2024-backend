@@ -1,93 +1,167 @@
 package com.sks.gateway.recipes.rest;
 
+import com.sks.gateway.util.UserHelper;
+import com.sks.recipes.api.RecipeRequestMessage;
+import com.sks.recipes.api.RecipeResponseMessage;
+import com.sks.recipes.api.RecipeSender;
 import com.sks.recipes.api.dto.CreateRecipeDTO;
 import com.sks.recipes.api.dto.RecipeDTO;
+import com.sks.users.api.UserDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Date;
+import java.security.Principal;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 public class RecipesResourceTest {
+    @Mock
+    private RecipeSender recipeSender;
+
+    @Mock
+    private UserHelper userHelper;
+
+    @Mock
+    private Principal principal;
+
     private RecipesResource controller;
 
     @BeforeEach
     public void setUp() {
-        controller = new RecipesResource();
+        recipeSender = mock(RecipeSender.class);
+        userHelper = mock(UserHelper.class);
+        principal = mock(Principal.class);
+        controller = new RecipesResource(recipeSender, userHelper);
     }
 
     @Test
-    public void testGetRecipeById() {
+    void getRecipeByIdReturnsRecipeWhenFound() {
         int id = 1;
-        RecipeDTO response = controller.getRecipeById(id);
+        RecipeDTO recipe = new RecipeDTO();
+        RecipeResponseMessage response = new RecipeResponseMessage();
+        response.setRecipes(List.of(recipe));
+        when(recipeSender.sendRequest(any())).thenReturn(response);
 
-        assertNotNull(response);
-        assertEquals(id, response.getId());
-        assertEquals("Flammkuchen", response.getTitle());
-        assertEquals("Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...", response.getDescription());
-        assertEquals("/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png", response.getImgUri());
-        assertNotNull(response.getCreationDate());
-        assertEquals("/users/42", response.getOwnerUri());
+        RecipeDTO result = controller.getRecipeById(id);
+
+        assertEquals(recipe, result);
     }
 
     @Test
-    public void testGetMultipleRecipesById() {
-        int[] ids = {1, 2, 3};
-        RecipeDTO[] responses = controller.getMultipleRecipesById(ids);
-
-        assertNotNull(responses);
-        assertEquals(ids.length, responses.length);
-
-        for (int i = 0; i < ids.length; i++) {
-            assertNotNull(responses[i]);
-            assertEquals(ids[i], responses[i].getId());
-            assertEquals("Flammkuchen", responses[i].getTitle());
-            assertEquals("Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...", responses[i].getDescription());
-            assertEquals("/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png", responses[i].getImgUri());
-            assertNotNull(responses[i].getCreationDate());
-            assertEquals("/users/42", responses[i].getOwnerUri());
-        }
-    }
-
-    @Test
-    public void testCreateRecipe() {
-        CreateRecipeDTO createRecipeDTO = new CreateRecipeDTO("Flammkuchen", "Flammkuchen ist ein dünner Fladenbrotteig, der mit Crème fraîche, Zwiebeln und Speck belegt wird...","/static/images/695f6e65b4bcd2cd19c7b0dd62b0fb82.png", "/users/42");
-        RecipeDTO response = controller.createRecipe(createRecipeDTO);
-
-        assertNotNull(response);
-        assertEquals(42, response.getId());
-        assertEquals(createRecipeDTO.getTitle(), response.getTitle());
-        assertEquals(createRecipeDTO.getImgUri(), response.getImgUri());
-        assertEquals(createRecipeDTO.getDescription(), response.getDescription());
-        assertNotNull(response.getCreationDate());
-        assertEquals(createRecipeDTO.getOwnerUri(), response.getOwnerUri());
-    }
-
-    @Test
-    public void testUpdateRecipe() {
+    void getRecipeByIdThrowsNotFoundWhenRecipeNotFound() {
         int id = 1;
-        RecipeDTO updateRecipeDTO = new RecipeDTO(id, "Flammkuchen Updated", "Updated Description","/static/images/updated.png",new Date(), "/users/42");
-        RecipeDTO response = controller.updateRecipe(id, updateRecipeDTO);
+        final RecipeResponseMessage response = new RecipeResponseMessage();
+        response.setRecipes(List.of());
+        when(recipeSender.sendRequest(any())).thenReturn(response);
 
-        assertNotNull(response);
-        assertEquals(updateRecipeDTO.getId(), response.getId());
-        assertEquals(updateRecipeDTO.getTitle(), response.getTitle());
-        assertEquals(updateRecipeDTO.getImgUri(), response.getImgUri());
-        assertEquals(updateRecipeDTO.getDescription(), response.getDescription());
-        assertEquals(updateRecipeDTO.getCreationDate(), response.getCreationDate());
-        assertEquals(updateRecipeDTO.getOwnerUri(), response.getOwnerUri());
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> controller.getRecipeById(id));
+
+        assertEquals(exception.getStatusCode(), HttpStatus.NOT_FOUND);
     }
 
     @Test
-    public void testDeleteRecipe() {
-        int id = 1;
-        ResponseEntity<Void> response = controller.deleteRecipe(id);
+    void getMultipleRecipesByIdReturnsRecipes() {
+        long[] ids = {1L, 2L};
+        RecipeResponseMessage response = mock(RecipeResponseMessage.class);
+        RecipeDTO recipe1 = new RecipeDTO();
+        RecipeDTO recipe2 = new RecipeDTO();
+        LinkedList<RecipeDTO> recipes = new LinkedList<>();
+        recipes.add(recipe1);
+        recipes.add(recipe2);
+        when(recipeSender.sendRequest(any())).thenReturn(response);
+        when(response.getRecipes()).thenReturn(recipes);
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        RecipeDTO[] result = controller.getMultipleRecipesById(ids);
+
+        assertEquals(2, result.length);
+        assertEquals(recipe1, result[0]);
+        assertEquals(recipe2, result[1]);
+    }
+
+    @Test
+    void createRecipeReturnsCreatedRecipe() {
+        CreateRecipeDTO createRecipeDTO = new CreateRecipeDTO();
+        UserDTO user = new UserDTO();
+        user.setUserId(1L);
+        RecipeResponseMessage response = mock(RecipeResponseMessage.class);
+        RecipeDTO recipe = new RecipeDTO();
+        when(userHelper.getCurrentInternalUser(principal)).thenReturn(user);
+        when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(response);
+        when(response.getRecipe()).thenReturn(recipe);
+
+        RecipeDTO result = controller.createRecipe(createRecipeDTO, principal);
+
+        assertEquals(recipe, result);
+    }
+
+    @Test
+    void createRecipeThrowsUnauthorizedWhenUserNotAuthenticated() {
+        CreateRecipeDTO createRecipeDTO = new CreateRecipeDTO();
+        when(userHelper.getCurrentInternalUser(principal)).thenReturn(null);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> controller.createRecipe(createRecipeDTO, principal));
+
+        assertEquals(exception.getStatusCode(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void updateRecipeReturnsUpdatedRecipe() {
+        int id = 1;
+        CreateRecipeDTO createRecipeDTO = new CreateRecipeDTO();
+        createRecipeDTO.setId(id);
+        UserDTO user = new UserDTO();
+        user.setUserId(1L);
+        RecipeResponseMessage response = mock(RecipeResponseMessage.class);
+        RecipeDTO recipe = new RecipeDTO();
+        when(userHelper.getCurrentInternalUser(principal)).thenReturn(user);
+        when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(response);
+        when(response.getRecipe()).thenReturn(recipe);
+
+        RecipeDTO result = controller.updateRecipe(id, createRecipeDTO, principal);
+
+        assertEquals(recipe, result);
+    }
+
+    @Test
+    void updateRecipeThrowsBadRequestWhenIdMismatch() {
+        int id = 1;
+        CreateRecipeDTO createRecipeDTO = new CreateRecipeDTO();
+        createRecipeDTO.setId(2);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> controller.updateRecipe(id, createRecipeDTO, principal));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    }
+
+    @Test
+    void deleteRecipeReturnsNoContentWhenSuccessful() {
+        int id = 1;
+        RecipeResponseMessage response = mock(RecipeResponseMessage.class);
+        when(recipeSender.sendRequest(any())).thenReturn(response);
+        when(response.isWasSuccessful()).thenReturn(true);
+
+        ResponseEntity<Void> result = controller.deleteRecipe(id);
+
+        assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
+    }
+
+    @Test
+    void deleteRecipeThrowsInternalServerErrorWhenFailed() {
+        int id = 1;
+        RecipeResponseMessage response = mock(RecipeResponseMessage.class);
+        when(recipeSender.sendRequest(any())).thenReturn(response);
+        when(response.isWasSuccessful()).thenReturn(false);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> controller.deleteRecipe(id));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
     }
 }

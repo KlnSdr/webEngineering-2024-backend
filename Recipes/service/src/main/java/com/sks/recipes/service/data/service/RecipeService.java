@@ -5,6 +5,7 @@ import com.sks.recipes.service.data.repo.RecipeRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RecipeService {
@@ -16,6 +17,16 @@ public class RecipeService {
 
     public List<RecipeEntity> getAll() {
         return recipeRepository.findAll();
+    }
+
+    public Optional<RecipeEntity> findById(long id) {
+        return recipeRepository.findById(id);
+    }
+
+    public boolean deleteById(long id) {
+        recipeRepository.deleteById(id);
+
+        return findById(id).isEmpty();
     }
 
     public List<RecipeEntity> findByName(String searchString) {
