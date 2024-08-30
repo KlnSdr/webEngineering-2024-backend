@@ -6,7 +6,7 @@ public class SurveyRequestMessage extends BaseMessage {
     private String message;
     private String recipeUri;
     private long surveyId;
-    private RequestType requestType;
+    private SurveyRequestType surveyRequestType;
     private SurveyDTO survey;
     private String ownerUri;
     private String userUri;
@@ -14,25 +14,25 @@ public class SurveyRequestMessage extends BaseMessage {
     public SurveyRequestMessage() {
     }
 
-    public SurveyRequestMessage(long surveyId, RequestType requestType) {
+    public SurveyRequestMessage(long surveyId, SurveyRequestType surveyRequestType) {
         this.surveyId = surveyId;
-        this.requestType = requestType;
+        this.surveyRequestType = surveyRequestType;
     }
-    public SurveyRequestMessage(SurveyDTO survey, RequestType requestType) {
+    public SurveyRequestMessage(SurveyDTO survey, SurveyRequestType surveyRequestType) {
         this.survey = survey;
-        this.requestType = requestType;
+        this.surveyRequestType = surveyRequestType;
     }
 
-    public SurveyRequestMessage(String ownerUri, RequestType requestType) {
+    public SurveyRequestMessage(String ownerUri, SurveyRequestType surveyRequestType) {
         this.ownerUri = ownerUri;
-        this.requestType = requestType;
+        this.surveyRequestType = surveyRequestType;
     }
 
-    public SurveyRequestMessage(String recipeUri, String userUri, long surveyId, RequestType requestType) {
+    public SurveyRequestMessage(String recipeUri, String userUri, long surveyId, SurveyRequestType surveyRequestType) {
         this.recipeUri = recipeUri;
         this.userUri = userUri;
         this.surveyId = surveyId;
-        this.requestType = requestType;
+        this.surveyRequestType = surveyRequestType;
     }
 
 
@@ -52,12 +52,12 @@ public class SurveyRequestMessage extends BaseMessage {
         this.surveyId = surveyId;
     }
 
-    public RequestType getRequestType() {
-        return requestType;
+    public SurveyRequestType getRequestType() {
+        return surveyRequestType;
     }
 
-    public void setRequestType(RequestType requestType) {
-        this.requestType = requestType;
+    public void setRequestType(SurveyRequestType surveyRequestType) {
+        this.surveyRequestType = surveyRequestType;
     }
 
     public SurveyDTO getSurvey() {

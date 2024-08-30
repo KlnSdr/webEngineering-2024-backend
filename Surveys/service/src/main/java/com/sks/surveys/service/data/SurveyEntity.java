@@ -2,7 +2,7 @@ package com.sks.surveys.service.data;
 
 import jakarta.persistence.*;
 
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,7 +32,7 @@ public class SurveyEntity {
     private List<String> options;
 
     @Column(name = "Survey_Creation_Date", nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Timestamp creationDate;
+    private Date creationDate;
 
     public SurveyEntity() {
     }
@@ -77,11 +77,11 @@ public class SurveyEntity {
         this.title = title;
     }
 
-    public Timestamp getCreationDate() {
+    public Date getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(Timestamp creationDate) {
+    public void setCreationDate(Date creationDate) {
         this.creationDate = creationDate;
     }
 

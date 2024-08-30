@@ -38,7 +38,7 @@ public class ListernerTest {
     @Test
     void getSurveyByIdRequestTest() {
         SurveyRequestMessage request = new SurveyRequestMessage();
-        request.setRequestType(RequestType.SurveyById);
+        request.setRequestType(SurveyRequestType.GET_SurveyById);
         request.setSurveyId(1L);
         SurveyEntity surveyEntity = new SurveyEntity();
         surveyEntity.setId(1L);
@@ -53,7 +53,7 @@ public class ListernerTest {
     @Test
     void getSurveyByIdRequestNotFoundTest() {
         SurveyRequestMessage request = new SurveyRequestMessage();
-        request.setRequestType(RequestType.SurveyById);
+        request.setRequestType(SurveyRequestType.GET_SurveyById);
         request.setSurveyId(1L);
         when(surveyService.getSurveyById(1L)).thenReturn(Optional.empty());
         when(converter.fromMessage(any())).thenReturn(request);
@@ -66,7 +66,7 @@ public class ListernerTest {
     @Test
     void getSurveysByOwnerRequestTest() {
         SurveyRequestMessage request = new SurveyRequestMessage();
-        request.setRequestType(RequestType.SurveyByOwner);
+        request.setRequestType(SurveyRequestType.GET_SurveyByOwner);
         request.setOwnerUri("/users/42");
         when(converter.fromMessage(any())).thenReturn(request);
 
@@ -78,7 +78,7 @@ public class ListernerTest {
     @Test
     void handleSaveSurveyRequestTest() {
         SurveyRequestMessage request = new SurveyRequestMessage();
-        request.setRequestType(RequestType.SaveSurvey);
+        request.setRequestType(SurveyRequestType.POST_SaveSurvey);
 
         SurveyDTO survey = new SurveyDTO();
         survey.setTitle("title");
@@ -109,7 +109,7 @@ public class ListernerTest {
     @Test
     void handleDeleteSurveyRequestTest() {
         SurveyRequestMessage request = new SurveyRequestMessage();
-        request.setRequestType(RequestType.DeleteSurvey);
+        request.setRequestType(SurveyRequestType.DELETE_DeleteSurvey);
         request.setSurveyId(1L);
         SurveyEntity surveyEntity = new SurveyEntity();
         surveyEntity.setId(1L);
@@ -124,7 +124,7 @@ public class ListernerTest {
     @Test
     void handleUpdateSurveyRequestTest() {
         SurveyRequestMessage request = new SurveyRequestMessage();
-        request.setRequestType(RequestType.UpdateSurvey);
+        request.setRequestType(SurveyRequestType.PUT_UpdateSurvey);
 
         SurveyDTO survey = new SurveyDTO();
         survey.setId(1L);

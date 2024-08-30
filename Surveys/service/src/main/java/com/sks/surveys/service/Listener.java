@@ -10,7 +10,6 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.sql.Timestamp;
 import java.util.*;
 
 @Component
@@ -32,12 +31,12 @@ public class Listener implements SurveyListener {
             return;
         }
         final SurveyResponseMessage response = switch (request.getRequestType()) {
-            case SurveyById -> getSurveyById(request.getSurveyId());
-            case SurveyByOwner -> getSurveysByOwner(request.getOwnerUri());
-            case SaveSurvey -> handleSaveSurvey(request.getSurvey());
-            case DeleteSurvey -> handleDeleteSurvey(request.getSurveyId());
-            case UpdateSurvey -> handleUpdateSurvey(request.getSurvey());
-            case VoteSurvey -> handleVoteSurvey(request.getSurveyId(), request.getRecipeUri(), request.getUserUri());
+            case GET_SurveyById -> getSurveyById(request.getSurveyId());
+            case GET_SurveyByOwner -> getSurveysByOwner(request.getOwnerUri());
+            case POST_SaveSurvey -> handleCreateSurvey(request.getSurvey());
+            case DELETE_DeleteSurvey -> handleDeleteSurvey(request.getSurveyId());
+            case PUT_UpdateSurvey -> handleUpdateSurvey(request.getSurvey());
+            case PUT_VoteSurvey -> handleVoteSurvey(request.getSurveyId(), request.getRecipeUri(), request.getUserUri());
         };
 
         sender.sendResponse(request, (response));
@@ -49,9 +48,9 @@ public class Listener implements SurveyListener {
         Optional<SurveyEntity> surveyEntity = service.getSurveyById(surveyId);
         if (surveyEntity.isPresent()) {
             survey.add(map(surveyEntity.get()));
-            response.setSurvey(survey.toArray(new SurveyDTO[0]));
+            response.setSurveys(survey.toArray(new SurveyDTO[0]));
         }else{
-            response.setMessage("Survey not found");
+            response.setSurveys(new SurveyDTO[0]);
         }
         return response;
     }
@@ -60,19 +59,19 @@ public class Listener implements SurveyListener {
         final SurveyResponseMessage response = new SurveyResponseMessage();
         List<SurveyEntity> surveyEntities = service.getSurveysByOwnerUri(ownerUri);
         if (surveyEntities.isEmpty()) {
-            response.setMessage("No surveys found");
+            response.setSurveys(new SurveyDTO[0]);
         }else{
-           response.setSurvey(surveyEntities.stream().map(this::map).toArray(SurveyDTO[]::new));
+           response.setSurveys(surveyEntities.stream().map(this::map).toArray(SurveyDTO[]::new));
         }
         return response;
     }
 
-    private SurveyResponseMessage handleSaveSurvey(SurveyDTO survey) {
+    private SurveyResponseMessage handleCreateSurvey(SurveyDTO survey) {
         SurveyResponseMessage response = new SurveyResponseMessage();
         SurveyEntity entity = new SurveyEntity();
         entity.setTitle(survey.getTitle());
         entity.setOwnerUri(survey.getCreator());
-        entity.setCreationDate((Timestamp) survey.getCreationDate());
+        entity.setCreationDate(survey.getCreationDate());
         Set<SurveyParticipants> participants = new HashSet<>();
         for (String participant : survey.getParticipants()) {
             participants.add(new SurveyParticipants(entity, participant));
@@ -82,7 +81,7 @@ public class Listener implements SurveyListener {
         entity.setOptions(survey.getOptions());
         try{
             service.save(entity);
-            response.setSurvey(new SurveyDTO[]{map(entity)});
+            response.setSurveys(new SurveyDTO[]{map(entity)});
         }catch (Exception e){
             response.setMessage("Error saving survey");
         }
@@ -118,7 +117,7 @@ public class Listener implements SurveyListener {
             updatedEntity.setOptions(survey.getOptions());
             try{
                 service.save(updatedEntity);
-                response.setSurvey(new SurveyDTO[]{map(updatedEntity)});
+                response.setSurveys(new SurveyDTO[]{map(updatedEntity)});
             }catch (Exception e){
                 response.setMessage("Error updating survey");
             }
@@ -129,20 +128,27 @@ public class Listener implements SurveyListener {
     private SurveyResponseMessage handleVoteSurvey(long surveyId, String recipeUri, String userUri) {
         Optional<SurveyEntity> entity = service.getSurveyById(surveyId);
         SurveyResponseMessage response = new SurveyResponseMessage();
-        SurveyVote vote = new SurveyVote();
+        SurveyVote newVote = new SurveyVote();
         if (entity.isPresent()) {
+            SurveyEntity currentEntity = entity.get();
             if (!entity.get().getOptions().contains(recipeUri)) {
                 response.setMessage("Recipe not found in survey options");
                 return response;
             }
-            vote.setRecipeUri(recipeUri);
-            vote.setUserUri(userUri);
-            vote.setSurvey(entity.get());
+
+            currentEntity.getVotes().stream()
+                    .filter(vote -> vote.getUserUri().equals(userUri))
+                    .findFirst().ifPresent(existingVote -> currentEntity.getVotes().remove(existingVote));
+
+
+            newVote.setRecipeUri(recipeUri);
+            newVote.setUserUri(userUri);
+            newVote.setSurvey(currentEntity);
             SurveyEntity updatedEntity = entity.get();
-            updatedEntity.getVotes().add(vote);
+            updatedEntity.getVotes().add(newVote);
             try{
                 service.save(updatedEntity);
-                response.setSurvey(new SurveyDTO[]{map(updatedEntity)});
+                response.setSurveys(new SurveyDTO[]{map(updatedEntity)});
             }catch (Exception e){
                 response.setMessage("Error voting on survey");
             }
