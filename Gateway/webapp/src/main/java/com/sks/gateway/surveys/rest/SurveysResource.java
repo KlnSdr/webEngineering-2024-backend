@@ -1,10 +1,13 @@
 package com.sks.gateway.surveys.rest;
 
+import com.sks.gateway.util.AccessVerifier;
 import com.sks.surveys.api.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.security.Principal;
 
 
 @RestController
@@ -12,26 +15,44 @@ import org.springframework.web.server.ResponseStatusException;
 public class SurveysResource {
 
     private final SurveySender surveySender;
+    private final AccessVerifier accessVerifier;
 
-    public SurveysResource(SurveySender surveySender) {
+    public SurveysResource(SurveySender surveySender , AccessVerifier accessVerifier) {
         this.surveySender = surveySender;
+        this.accessVerifier = accessVerifier;
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/user/{userId}")
     @ResponseBody
-    public SurveyDTO getSurveyById(@PathVariable("id") Integer id) {
+    public SurveyDTO getSurveyById(@PathVariable("id") Integer id, Principal principal, @PathVariable("userId") long userId) {
+
+        if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(id, SurveyRequestType.GET_SurveyById));
         if(response.getSurveys().length == 0){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Survey not found");
+        }
+
+        for (String participant : response.getSurveys()[0].getParticipants()) {
+            if (!participant.equals("/users/" + userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            }
         }
 
         return response.getSurveys()[0];
 
     }
 
-    @GetMapping("user/{userId}")
+    @GetMapping("/user/{userId}")
     @ResponseBody
-    public SurveyDTO[] getSurveysByUserId(@PathVariable("userId") int userId) {
+    public SurveyDTO[] getSurveysByUserId(@PathVariable("userId") int userId, Principal principal) {
+
+        if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/users/id/" + userId, SurveyRequestType.GET_SurveyByOwner));
         if (response.getSurveys().length == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No surveys found");}
@@ -39,9 +60,14 @@ public class SurveysResource {
         return response.getSurveys();
         };
 
-    @PostMapping
+    @PostMapping("/user/{userId}")
     @ResponseBody
-    public SurveyDTO createSurvey(@RequestBody SurveyDTO survey) {
+    public SurveyDTO createSurvey(@RequestBody SurveyDTO survey, @PathVariable("userId") long userId, Principal principal) {
+
+        if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
         if (!isSurveyValid(survey)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Survey is not valid");
         }
@@ -55,6 +81,7 @@ public class SurveysResource {
     @DeleteMapping("/{id}")
     @ResponseBody
     public ResponseEntity<Void> deleteSurvey(@PathVariable("id") int id) {
+
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(id, SurveyRequestType.DELETE_DeleteSurvey));
         if (response.getMessage() != null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, response.getMessage());

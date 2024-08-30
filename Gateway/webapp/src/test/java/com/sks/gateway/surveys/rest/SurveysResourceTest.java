@@ -1,5 +1,6 @@
 package com.sks.gateway.surveys.rest;
 
+import com.sks.gateway.util.AccessVerifier;
 import com.sks.surveys.api.SurveyDTO;
 import com.sks.surveys.api.SurveyRequestMessage;
 import com.sks.surveys.api.SurveyResponseMessage;
@@ -23,16 +24,20 @@ public class SurveysResourceTest {
     @Mock
     private SurveySender sender;
 
+    @Mock
+    private AccessVerifier accessVerifier;
+
     private SurveysResource controller;
 
     @BeforeEach
     void setUp() {
         sender = mock(SurveySender.class);
-        controller = new SurveysResource(sender);
+        controller = new SurveysResource(sender , accessVerifier);
     }
 
     @Test
     void testGetSurveyById() {
+        long userId = 1;
         int surveyId = 1;
         SurveyResponseMessage response = mock(SurveyResponseMessage.class);
         SurveyDTO survey = new SurveyDTO();
@@ -42,7 +47,7 @@ public class SurveysResourceTest {
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
         when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
 
-        SurveyDTO result = controller.getSurveyById(surveyId);
+        SurveyDTO result = controller.getSurveyById(surveyId, null, userId);
 
         assertNotNull(result);
         assertEquals(surveyId, result.getId());
@@ -51,6 +56,7 @@ public class SurveysResourceTest {
 
     @Test
     void testGetSurveyByIdNotFound() {
+        long userId = 1;
         int surveyId = 1;
         SurveyResponseMessage response = mock(SurveyResponseMessage.class);
 
@@ -58,7 +64,7 @@ public class SurveysResourceTest {
         when(response.getSurveys()).thenReturn(new SurveyDTO[]{});
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            controller.getSurveyById(surveyId);
+            controller.getSurveyById(surveyId, null, userId);
         });
 
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
@@ -76,7 +82,7 @@ public class SurveysResourceTest {
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
         when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
 
-        SurveyDTO[] result = controller.getSurveysByUserId(userId);
+        SurveyDTO[] result = controller.getSurveysByUserId(userId,null);
 
         assertNotNull(result);
         assertEquals(1, result.length);
@@ -93,7 +99,7 @@ public class SurveysResourceTest {
         when(response.getSurveys()).thenReturn(new SurveyDTO[]{});
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            controller.getSurveysByUserId(userId);
+            controller.getSurveysByUserId(userId,null);
         });
 
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
@@ -102,6 +108,7 @@ public class SurveysResourceTest {
 
     @Test
     void testCreateSurvey() {
+        long userId = 42;
         SurveyDTO survey = new SurveyDTO();
         survey.setTitle("Bannenbrot");
         survey.setParticipants(new String[] {"/users/42", "/users/43"});
@@ -113,7 +120,7 @@ public class SurveysResourceTest {
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
         when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
 
-        SurveyDTO result = controller.createSurvey(survey);
+        SurveyDTO result = controller.createSurvey(survey, userId, null);
 
         assertNotNull(result);
         assertEquals("Bannenbrot", result.getTitle());
@@ -124,11 +131,12 @@ public class SurveysResourceTest {
 
     @Test
     void testCreateSurveyInvalid() {
+        long userId = 42;
         SurveyDTO survey = new SurveyDTO();
         survey.setTitle("");
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            controller.createSurvey(survey);
+            controller.createSurvey(survey, userId, null);
         });
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
