@@ -1,5 +1,6 @@
 package com.sks.gateway.recipes.rest;
 
+import com.sks.gateway.common.MessageErrorHandler;
 import com.sks.gateway.util.UserHelper;
 import com.sks.recipes.api.RecipeRequestMessage;
 import com.sks.recipes.api.RecipeResponseMessage;
@@ -26,10 +27,12 @@ import java.security.Principal;
 public class RecipesResource {
     private final UserHelper userHelper;
     private final RecipeSender sender;
+    private final MessageErrorHandler messageErrorHandler;
 
-    public RecipesResource(RecipeSender sender, UserHelper userHelper) {
+    public RecipesResource(RecipeSender sender, UserHelper userHelper, MessageErrorHandler messageErrorHandler) {
         this.sender = sender;
         this.userHelper = userHelper;
+        this.messageErrorHandler = messageErrorHandler;
     }
 
     @Operation(summary = "Get recipe by ID")
@@ -54,6 +57,10 @@ public class RecipesResource {
             @Parameter(description = "ID of the recipe to be fetched") @PathVariable("id") int id) {
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getById(id));
 
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         if (response.getRecipes().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipe with id " + id + " not found");
         }
@@ -77,6 +84,9 @@ public class RecipesResource {
     public RecipeDTO[] getMultipleRecipesById(
             @Parameter(description = "IDs of the recipes to be fetched") @RequestBody long[] ids) {
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getById(ids));
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
         return response.getRecipes().toArray(new RecipeDTO[0]);
     }
 
@@ -131,6 +141,10 @@ public class RecipesResource {
 
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.update(recipe));
 
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         if (response.getRecipe() == null) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create recipe");
         }
@@ -149,6 +163,10 @@ public class RecipesResource {
     public ResponseEntity<Void> deleteRecipe(
             @Parameter(description = "ID of the recipe to be deleted") @PathVariable("id") int id) {
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.delete(id));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
 
         if (!response.isWasSuccessful()) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete recipe with id " + id);
