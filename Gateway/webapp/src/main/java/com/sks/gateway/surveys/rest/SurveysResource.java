@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.util.List;
 
 
 @RestController
@@ -35,10 +36,9 @@ public class SurveysResource {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Survey not found");
         }
 
-        for (String participant : response.getSurveys()[0].getParticipants()) {
-            if (!participant.equals("/users/" + userId)) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-            }
+        List<String> participants = List.of(response.getSurveys()[0].getParticipants());
+        if (!participants.contains("/users/" + userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
 
         return response.getSurveys()[0];

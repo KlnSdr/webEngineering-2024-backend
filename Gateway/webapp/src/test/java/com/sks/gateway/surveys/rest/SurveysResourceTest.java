@@ -31,6 +31,7 @@ public class SurveysResourceTest {
 
     @BeforeEach
     void setUp() {
+        accessVerifier = mock(AccessVerifier.class);
         sender = mock(SurveySender.class);
         controller = new SurveysResource(sender , accessVerifier);
     }
@@ -43,7 +44,9 @@ public class SurveysResourceTest {
         SurveyDTO survey = new SurveyDTO();
         survey.setId(surveyId);
         survey.setTitle("Test Survey");
+        survey.setParticipants(new String[] {"/users/1", "/users/2"});
 
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
         when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
 
@@ -60,6 +63,7 @@ public class SurveysResourceTest {
         int surveyId = 1;
         SurveyResponseMessage response = mock(SurveyResponseMessage.class);
 
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
         when(response.getSurveys()).thenReturn(new SurveyDTO[]{});
 
@@ -79,6 +83,7 @@ public class SurveysResourceTest {
         survey.setId(1);
         survey.setTitle("Kauf oder Verkauf");
 
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
         when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
 
@@ -95,6 +100,7 @@ public class SurveysResourceTest {
         int userId = 1;
         SurveyResponseMessage response = mock(SurveyResponseMessage.class);
 
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
         when(response.getSurveys()).thenReturn(new SurveyDTO[]{});
 
@@ -117,6 +123,7 @@ public class SurveysResourceTest {
         survey.setRecipeVote(null);
 
         SurveyResponseMessage response = mock(SurveyResponseMessage.class);
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
         when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
 
@@ -134,6 +141,7 @@ public class SurveysResourceTest {
         long userId = 42;
         SurveyDTO survey = new SurveyDTO();
         survey.setTitle("");
+        when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
             controller.createSurvey(survey, userId, null);
