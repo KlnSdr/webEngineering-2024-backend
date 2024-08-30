@@ -55,7 +55,7 @@ public class SurveysResourceTest {
         SurveyResponseMessage response = mock(SurveyResponseMessage.class);
 
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
-        when(response.getSurveys()).thenReturn(null);
+        when(response.getSurveys()).thenReturn(new SurveyDTO[]{});
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
             controller.getSurveyById(surveyId);
@@ -90,7 +90,7 @@ public class SurveysResourceTest {
         SurveyResponseMessage response = mock(SurveyResponseMessage.class);
 
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
-        when(response.getSurveys()).thenReturn(null);
+        when(response.getSurveys()).thenReturn(new SurveyDTO[]{});
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
             controller.getSurveysByUserId(userId);
@@ -161,7 +161,7 @@ public class SurveysResourceTest {
             controller.deleteSurvey(surveyId);
         });
 
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         assertEquals("Survey not found", exception.getReason());
     }
 
@@ -201,7 +201,7 @@ public class SurveysResourceTest {
         });
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-        assertEquals("Survey id does not match", exception.getReason());
+        assertEquals("Survey is not valid", exception.getReason());
     }
 
     @Test
