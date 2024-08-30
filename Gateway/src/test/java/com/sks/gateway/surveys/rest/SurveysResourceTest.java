@@ -40,7 +40,7 @@ public class SurveysResourceTest {
         survey.setTitle("Test Survey");
 
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
-        when(response.getSurvey()).thenReturn(new SurveyDTO[]{survey});
+        when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
 
         SurveyDTO result = controller.getSurveyById(surveyId);
 
@@ -55,7 +55,7 @@ public class SurveysResourceTest {
         SurveyResponseMessage response = mock(SurveyResponseMessage.class);
 
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
-        when(response.getSurvey()).thenReturn(null);
+        when(response.getSurveys()).thenReturn(null);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
             controller.getSurveyById(surveyId);
@@ -74,7 +74,7 @@ public class SurveysResourceTest {
         survey.setTitle("Kauf oder Verkauf");
 
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
-        when(response.getSurvey()).thenReturn(new SurveyDTO[]{survey});
+        when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
 
         SurveyDTO[] result = controller.getSurveysByUserId(userId);
 
@@ -90,7 +90,7 @@ public class SurveysResourceTest {
         SurveyResponseMessage response = mock(SurveyResponseMessage.class);
 
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
-        when(response.getSurvey()).thenReturn(null);
+        when(response.getSurveys()).thenReturn(null);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
             controller.getSurveysByUserId(userId);
@@ -111,7 +111,7 @@ public class SurveysResourceTest {
 
         SurveyResponseMessage response = mock(SurveyResponseMessage.class);
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
-        when(response.getSurvey()).thenReturn(new SurveyDTO[]{survey});
+        when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
 
         SurveyDTO result = controller.createSurvey(survey);
 
@@ -178,7 +178,7 @@ public class SurveysResourceTest {
 
         SurveyResponseMessage response = mock(SurveyResponseMessage.class);
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
-        when(response.getSurvey()).thenReturn(new SurveyDTO[]{survey});
+        when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
 
         SurveyDTO result = controller.updateSurvey(surveyId, survey);
 
@@ -233,7 +233,7 @@ public class SurveysResourceTest {
         survey.getRecipeVote().put("1", userId);
 
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
-        when(response.getSurvey()).thenReturn(new SurveyDTO[]{survey});
+        when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
         when(response.getMessage()).thenReturn(null);
 
         SurveyDTO result = controller.voteForRecipe(surveyId, recipeId, userId);
