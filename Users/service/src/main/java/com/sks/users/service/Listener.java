@@ -9,18 +9,34 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+/**
+ * Listener class for handling user-related messages.
+ * This class implements the UsersListener interface and processes
+ * different types of user requests.
+ */
 @Component
 public class Listener implements UsersListener {
     private final UsersService service;
     private final TokenService tokenService;
     private final UsersSender sender;
 
+    /**
+     * Constructs a Listener with the specified UsersSender and UsersService.
+     *
+     * @param sender the sender to use for sending responses
+     * @param service the service to use for user operations
+     */
     public Listener(UsersSender sender, UsersService service, TokenService tokenService) {
         this.sender = sender;
         this.service = service;
         this.tokenService = tokenService;
     }
 
+    /**
+     * Listens for user request messages and processes them based on the request type.
+     *
+     * @param message the user request message to process
+     */
     @Override
     public void listen(UsersRequestMessage message) {
         UsersResponseMessage response;
@@ -46,6 +62,12 @@ public class Listener implements UsersListener {
         return response;
     }
 
+    /**
+     * Handles a request to get a user by their unique identifier.
+     *
+     * @param message the user request message
+     * @return the response message containing the user data
+     */
     private UsersResponseMessage handleGetById(UsersRequestMessage message) {
         final Optional<UsersEntity> user = service.findById(message.getUserId());
         final UsersResponseMessage response = new UsersResponseMessage();
@@ -53,6 +75,12 @@ public class Listener implements UsersListener {
         return response;
     }
 
+    /**
+     * Handles a request to get a user by their IDP hash.
+     *
+     * @param message the user request message
+     * @return the response message containing the user data
+     */
     private UsersResponseMessage handleGetByIdp(UsersRequestMessage message) {
         final Optional<UsersEntity> user = service.findByIdpHash(service.hashId(message.getIdpUserId()));
         final UsersResponseMessage response = new UsersResponseMessage();
@@ -60,6 +88,12 @@ public class Listener implements UsersListener {
         return response;
     }
 
+    /**
+     * Handles a request to create a new user.
+     *
+     * @param message the user request message
+     * @return the response message containing the created user data
+     */
     private UsersResponseMessage handleCreate(UsersRequestMessage message) {
         final Optional<UsersEntity> user = service.findByIdpHash(service.hashId(message.getIdpUserId()));
         final UsersResponseMessage response = new UsersResponseMessage();
@@ -92,6 +126,12 @@ public class Listener implements UsersListener {
         return response;
     }
 
+    /**
+     * Maps a UsersEntity object to a UserDTO object.
+     *
+     * @param user the UsersEntity object to map
+     * @return the mapped UserDTO object
+     */
     private UserDTO map(UsersEntity user) {
         final UserDTO dto = new UserDTO();
         dto.setUserId(user.getId());
