@@ -50,7 +50,7 @@ public class SurveysResourceTest {
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
         when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
 
-        SurveyDTO result = controller.getSurveyById(surveyId, null, userId);
+        SurveyDTO result = controller.getSurveyById(surveyId, userId);
 
         assertNotNull(result);
         assertEquals(surveyId, result.getId());
@@ -68,7 +68,7 @@ public class SurveysResourceTest {
         when(response.getSurveys()).thenReturn(new SurveyDTO[]{});
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            controller.getSurveyById(surveyId, null, userId);
+            controller.getSurveyById(surveyId, userId);
         });
 
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());

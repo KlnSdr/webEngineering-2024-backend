@@ -25,12 +25,7 @@ public class SurveysResource {
 
     @GetMapping("/{id}/user/{userId}")
     @ResponseBody
-    public SurveyDTO getSurveyById(@PathVariable("id") Integer id, Principal principal, @PathVariable("userId") long userId) {
-
-        if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-        }
-
+    public SurveyDTO getSurveyById(@PathVariable("id") Integer id, @PathVariable("userId") long userId) {
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(id, SurveyRequestType.GET_SurveyById));
         if(response.getSurveys().length == 0){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Survey not found");
