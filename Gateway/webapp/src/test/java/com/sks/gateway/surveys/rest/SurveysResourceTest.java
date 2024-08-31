@@ -44,7 +44,7 @@ public class SurveysResourceTest {
         SurveyDTO survey = new SurveyDTO();
         survey.setId(surveyId);
         survey.setTitle("Test Survey");
-        survey.setParticipants(new String[] {"/users/1", "/users/2"});
+        survey.setParticipants(new String[] {"/users/id/1", "/users/id/2"});
 
         when(accessVerifier.verifyAccessesSelf(userId, null)).thenReturn(true);
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
@@ -117,9 +117,9 @@ public class SurveysResourceTest {
         long userId = 42;
         SurveyDTO survey = new SurveyDTO();
         survey.setTitle("Bannenbrot");
-        survey.setParticipants(new String[] {"/users/42", "/users/43"});
+        survey.setParticipants(new String[] {"/users/id/42", "/users/id/43"});
         survey.setOptions(List.of("/recipes/1", "recepies/2"));
-        survey.setCreator("/users/42");
+        survey.setCreator("/users/id/42");
         survey.setRecipeVote(null);
 
         SurveyResponseMessage response = mock(SurveyResponseMessage.class);
@@ -132,7 +132,7 @@ public class SurveysResourceTest {
         assertNotNull(result);
         assertEquals("Bannenbrot", result.getTitle());
         assertEquals(2, result.getParticipants().length);
-        assertEquals("/users/42", result.getCreator());
+        assertEquals("/users/id/42", result.getCreator());
         assertEquals(2, result.getOptions().size());
     }
 
