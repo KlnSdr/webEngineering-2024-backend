@@ -10,15 +10,29 @@ import org.springframework.stereotype.Component;
 
 import java.security.Principal;
 
+/**
+ * Helper component for user-related operations.
+ */
 @Component
 public class UserHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserHelper.class);
     private final UsersSender usersSender;
 
+    /**
+     * Constructs a UserHelper with the specified UsersSender.
+     *
+     * @param usersSender the sender to use for sending user requests
+     */
     public UserHelper(UsersSender usersSender) {
         this.usersSender = usersSender;
     }
 
+    /**
+     * Retrieves the current internal user based on the provided security principal.
+     *
+     * @param principal the security principal of the current user
+     * @return the UserDTO of the current internal user, or null if the principal is null
+     */
     public UserDTO getCurrentInternalUser(Principal principal) {
         if (principal == null) {
             return null;
