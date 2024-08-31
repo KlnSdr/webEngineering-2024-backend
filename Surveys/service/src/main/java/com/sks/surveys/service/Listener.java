@@ -58,11 +58,8 @@ public class Listener implements SurveyListener {
     private SurveyResponseMessage getSurveysByOwner(String ownerUri) {
         final SurveyResponseMessage response = new SurveyResponseMessage();
         List<SurveyEntity> surveyEntities = service.getSurveysByOwnerUri(ownerUri);
-        if (surveyEntities.isEmpty()) {
-            response.setSurveys(new SurveyDTO[0]);
-        }else{
-           response.setSurveys(surveyEntities.stream().map(this::map).toArray(SurveyDTO[]::new));
-        }
+        response.setSurveys(surveyEntities.stream().map(this::map).toArray(SurveyDTO[]::new));
+
         return response;
     }
 

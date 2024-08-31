@@ -37,7 +37,7 @@ public class SurveysResource {
         }
 
         List<String> participants = List.of(response.getSurveys()[0].getParticipants());
-        if (!participants.contains("/users/" + userId)) {
+        if (!participants.contains("/users/id/" + userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
 
@@ -106,7 +106,7 @@ public class SurveysResource {
     @ResponseBody
     public SurveyDTO voteForRecipe(@PathVariable("id") int surveyId, @PathVariable("recipeId") int recipeId, @PathVariable("userId") int userId) {
 
-        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/recipes/" + recipeId, "/users/"+ userId, surveyId, SurveyRequestType.PUT_VoteSurvey));
+        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/recipes/" + recipeId, "/users/id/"+ userId, surveyId, SurveyRequestType.PUT_VoteSurvey));
         if(response.getMessage() != null){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to vote for recipe");
         }
