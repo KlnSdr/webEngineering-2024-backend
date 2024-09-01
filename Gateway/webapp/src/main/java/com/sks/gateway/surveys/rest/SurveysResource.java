@@ -1,9 +1,8 @@
 package com.sks.gateway.surveys.rest;
 
+import com.sks.gateway.common.MessageErrorHandler;
 import com.sks.gateway.surveys.dto.MySurveysDTO;
 import com.sks.gateway.util.UserHelper;
-import com.sks.gateway.common.MessageErrorHandler;
-import com.sks.gateway.util.AccessVerifier;
 import com.sks.surveys.api.*;
 import com.sks.users.api.UserDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,14 +27,12 @@ public class SurveysResource {
 
     private final SurveySender surveySender;
     private final UserHelper userHelper;
-    private final AccessVerifier accessVerifier;
     private final MessageErrorHandler messageErrorHandler;
 
-    public SurveysResource(SurveySender surveySender, UserHelper userHelper, AccessVerifier accessVerifier, MessageErrorHandler messageErrorHandler) {
+    public SurveysResource(SurveySender surveySender, UserHelper userHelper, MessageErrorHandler messageErrorHandler) {
         this.surveySender = surveySender;
         this.userHelper = userHelper;
         this.messageErrorHandler = messageErrorHandler;
-        this.accessVerifier = accessVerifier;
     }
 
     @Operation(summary = "Get survey by ID")
@@ -75,7 +72,7 @@ public class SurveysResource {
         return response.getSurveys()[0];
     }
 
-    @Operation(summary = "Get surveys by user ID")
+    @Operation(summary = "Get all surveys a user is either the creator of or participating in")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Found the surveys", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = MySurveysDTO.class)))}),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
@@ -93,8 +90,18 @@ public class SurveysResource {
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/users/id/" + user.getUserId(), SurveyRequestType.GET_SurveyByOwner));
         final SurveyDTO[] ownedSurveys = response.getSurveys();
 
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
+
         final SurveyResponseMessage responseParticipating = surveySender.sendRequest(SurveyRequestMessage.getParticipating("/users/id/" + user.getUserId()));
         final SurveyDTO[] participatingSurveys = responseParticipating.getSurveys();
+
+        if (responseParticipating.didError()) {
+            messageErrorHandler.handle(responseParticipating);
+        }
+
 
         return new MySurveysDTO(ownedSurveys, participatingSurveys);
     }

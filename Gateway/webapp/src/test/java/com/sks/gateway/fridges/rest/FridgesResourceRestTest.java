@@ -110,7 +110,6 @@ public class FridgesResourceRestTest {
     public void testAddOrUpdateFridgeItems_Failure() throws Exception {
         FridgeResponseMessage fridgeResponse = new FridgeResponseMessage();
         fridgeResponse.setWasSuccess(false);
-        fridgeResponse.setMessage("Failed to update fridge items");
         when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(fridgeResponse);
 
         String requestContent = "[{\"productId\":1,\"quantity\":5}]";
@@ -139,7 +138,6 @@ public class FridgesResourceRestTest {
     public void testDeleteFridgeItem_Failure() throws Exception {
         FridgeResponseMessage fridgeResponse = new FridgeResponseMessage();
         fridgeResponse.setWasSuccess(false);
-        fridgeResponse.setMessage("Failed to delete fridge item");
         when(fridgeSender.sendRequest(any(FridgeRequestMessage.class))).thenReturn(fridgeResponse);
 
         mockMvc.perform(delete("/fridge/1/1")
