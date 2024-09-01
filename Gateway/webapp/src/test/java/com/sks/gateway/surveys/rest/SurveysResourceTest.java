@@ -1,5 +1,6 @@
 package com.sks.gateway.surveys.rest;
 
+import com.sks.gateway.surveys.dto.MySurveysDTO;
 import com.sks.gateway.util.UserHelper;
 import com.sks.surveys.api.SurveyDTO;
 import com.sks.surveys.api.SurveyRequestMessage;
@@ -79,41 +80,6 @@ public class SurveysResourceTest {
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         assertEquals("Survey not found", exception.getReason());
     }
-
-//    @Test
-//    void testGetSurveysByUserId() {
-//        int userId = 1;
-//        SurveyResponseMessage response = mock(SurveyResponseMessage.class);
-//        SurveyDTO survey = new SurveyDTO();
-//        survey.setId(1);
-//        survey.setTitle("Kauf oder Verkauf");
-//
-//        when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
-//        when(response.getSurveys()).thenReturn(new SurveyDTO[]{survey});
-//
-//        MySurveysDTO result = controller.getSurveysByUserId(null);
-//
-//        assertNotNull(result);
-////        assertEquals(1, result.length);
-////        assertEquals(1, result[0].getId());
-////        assertEquals("Kauf oder Verkauf", result[0].getTitle());
-//    }
-//
-//    @Test
-//    void testGetSurveysByUserIdNotFound() {
-//        int userId = 1;
-//        SurveyResponseMessage response = mock(SurveyResponseMessage.class);
-//
-//        when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
-//        when(response.getSurveys()).thenReturn(new SurveyDTO[]{});
-//
-//        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-//            controller.getSurveysByUserId(null);
-//        });
-//
-//        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-//        assertEquals("No surveys found", exception.getReason());
-//    }
 
     @Test
     void testCreateSurvey() {
@@ -301,5 +267,78 @@ public class SurveysResourceTest {
         assertEquals("Mein oder Dein?", result.getTitle());
         assertNotNull(result.getRecipeVote());
         assertEquals(1, result.getRecipeVote().size());
+    }
+
+    @Test
+    void getSurveysByUserIdReturnsOwnedAndParticipatingSurveys() {
+        final UserDTO user = new UserDTO();
+        user.setUserId(42L);
+        SurveyResponseMessage responseOwned = mock(SurveyResponseMessage.class);
+        SurveyResponseMessage responseParticipating = mock(SurveyResponseMessage.class);
+        SurveyDTO ownedSurvey = new SurveyDTO();
+        SurveyDTO participatingSurvey = new SurveyDTO();
+
+        when(userHelper.getCurrentInternalUser(null)).thenReturn(user);
+        when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(responseOwned).thenReturn(responseParticipating);
+        when(responseOwned.getSurveys()).thenReturn(new SurveyDTO[]{ownedSurvey});
+        when(responseParticipating.getSurveys()).thenReturn(new SurveyDTO[]{participatingSurvey});
+
+        MySurveysDTO result = controller.getSurveysByUserId(null);
+
+        assertNotNull(result);
+        assertEquals(1, result.owned().length);
+        assertEquals(1, result.participating().length);
+    }
+
+    @Test
+    void getSurveysByUserIdUnauthorized() {
+        when(userHelper.getCurrentInternalUser(null)).thenReturn(null);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.getSurveysByUserId(null);
+        });
+
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+        assertEquals("Unauthorized", exception.getReason());
+    }
+
+    @Test
+    void getSurveysByUserIdNoOwnedSurveys() {
+        final UserDTO user = new UserDTO();
+        user.setUserId(42L);
+        SurveyResponseMessage responseOwned = mock(SurveyResponseMessage.class);
+        SurveyResponseMessage responseParticipating = mock(SurveyResponseMessage.class);
+        SurveyDTO participatingSurvey = new SurveyDTO();
+
+        when(userHelper.getCurrentInternalUser(null)).thenReturn(user);
+        when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(responseOwned).thenReturn(responseParticipating);
+        when(responseOwned.getSurveys()).thenReturn(new SurveyDTO[]{});
+        when(responseParticipating.getSurveys()).thenReturn(new SurveyDTO[]{participatingSurvey});
+
+        MySurveysDTO result = controller.getSurveysByUserId(null);
+
+        assertNotNull(result);
+        assertEquals(0, result.owned().length);
+        assertEquals(1, result.participating().length);
+    }
+
+    @Test
+    void getSurveysByUserIdNoParticipatingSurveys() {
+        final UserDTO user = new UserDTO();
+        user.setUserId(42L);
+        SurveyResponseMessage responseOwned = mock(SurveyResponseMessage.class);
+        SurveyResponseMessage responseParticipating = mock(SurveyResponseMessage.class);
+        SurveyDTO ownedSurvey = new SurveyDTO();
+
+        when(userHelper.getCurrentInternalUser(null)).thenReturn(user);
+        when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(responseOwned).thenReturn(responseParticipating);
+        when(responseOwned.getSurveys()).thenReturn(new SurveyDTO[]{ownedSurvey});
+        when(responseParticipating.getSurveys()).thenReturn(new SurveyDTO[]{});
+
+        MySurveysDTO result = controller.getSurveysByUserId(null);
+
+        assertNotNull(result);
+        assertEquals(1, result.owned().length);
+        assertEquals(0, result.participating().length);
     }
 }

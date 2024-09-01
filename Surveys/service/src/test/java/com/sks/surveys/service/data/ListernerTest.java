@@ -155,7 +155,28 @@ public class ListernerTest {
         verify(sender).sendResponse(eq(request), any(SurveyResponseMessage.class));
     }
 
+    @Test
+    void listenHandlesGetSurveysByParticipantRequest() {
+        SurveyRequestMessage request = new SurveyRequestMessage();
+        request.setRequestType(SurveyRequestType.GET_SurveysByParticipant);
+        request.setUserUri("/users/id/42");
 
+        SurveyEntity surveyEntity = new SurveyEntity();
+        surveyEntity.setId(1L);
+        surveyEntity.setTitle("title");
+        surveyEntity.setOwnerUri("/users/42");
+        surveyEntity.setCreationDate(null);
+        surveyEntity.setParticipants(Set.of(new SurveyParticipants(surveyEntity, "/users/42"), new SurveyParticipants(surveyEntity, "/users/43")));
+        surveyEntity.setVotes(Set.of());
+        surveyEntity.setOptions(List.of("/recipes/1", "recepies/2"));
+
+        when(converter.fromMessage(any())).thenReturn(request);
+        when(surveyService.getSurveysByParticipant("/users/id/42")).thenReturn(List.of(surveyEntity));
+
+        listener.listen(null);
+
+        verify(sender).sendResponse(eq(request), any(SurveyResponseMessage.class));
+    }
 }
 
 
