@@ -1,5 +1,6 @@
 package com.sks.gateway.users;
 
+import com.sks.gateway.common.MessageErrorHandler;
 import com.sks.users.api.UserDTO;
 import com.sks.users.api.UsersRequestMessage;
 import com.sks.users.api.UsersResponseMessage;
@@ -23,9 +24,11 @@ import java.security.Principal;
 @RequestMapping("/users")
 public class UsersResource {
     final UsersSender sender;
+    final MessageErrorHandler messageErrorHandler;
 
-    public UsersResource(UsersSender sender) {
+    public UsersResource(UsersSender sender, MessageErrorHandler messageErrorHandler) {
         this.sender = sender;
+        this.messageErrorHandler = messageErrorHandler;
     }
 
     @Operation(summary = "Get the current user")
@@ -33,6 +36,7 @@ public class UsersResource {
             @ApiResponse(responseCode = "200", description = "Found the current user",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = Principal.class))),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping("/current")
     public Principal getCurrentUser(Principal principal) {
@@ -45,12 +49,18 @@ public class UsersResource {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = UserDTO.class))),
             @ApiResponse(responseCode = "404", description = "User not found",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping("/id/{id}")
     public UserDTO getUserById(
             @Parameter(description = "ID of the user to be fetched") @PathVariable("id") Long id) {
         final UsersResponseMessage responseMessage = sender.sendRequest(UsersRequestMessage.findUser(id));
+
+        if (responseMessage.didError()) {
+            messageErrorHandler.handle(responseMessage);
+        }
+
 
         final UserDTO user = responseMessage.getUser();
 

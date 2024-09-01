@@ -1,12 +1,15 @@
 package com.sks.gateway.fridges.rest;
 
 import com.sks.fridge.api.*;
+import com.sks.gateway.common.MessageErrorHandler;
 import com.sks.gateway.fridges.dto.FridgeItemDTO;
 import com.sks.gateway.util.AccessVerifier;
 import com.sks.products.api.ProductDTO;
 import com.sks.products.api.ProductsRequestMessage;
 import com.sks.products.api.ProductsResponseMessage;
 import com.sks.products.api.ProductsSender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -26,15 +29,18 @@ import java.util.List;
 @RestController
 @RequestMapping("/fridge")
 public class FridgesResource {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FridgesResource.class);
 
     private final ProductsSender productsSender;
     private final FridgeSender fridgeSender;
     private final AccessVerifier accessVerifier;
+    private final MessageErrorHandler messageErrorHandler;
 
-    public FridgesResource(ProductsSender productsSender, FridgeSender fridgeSender, AccessVerifier accessVerifier) {
+    public FridgesResource(ProductsSender productsSender, FridgeSender fridgeSender, AccessVerifier accessVerifier, MessageErrorHandler messageErrorHandler) {
         this.productsSender = productsSender;
         this.fridgeSender = fridgeSender;
         this.accessVerifier = accessVerifier;
+        this.messageErrorHandler = messageErrorHandler;
     }
 
     @Operation(summary = "Get information of fridge items")
@@ -49,7 +55,8 @@ public class FridgesResource {
                             )
                     }),
             @ApiResponse(responseCode = "403", description = "Access denied",content = @Content),
-            @ApiResponse(responseCode = "404", description = "Fridge not found", content = @Content)
+            @ApiResponse(responseCode = "404", description = "Fridge not found", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping("/{userId}")
     @ResponseBody
@@ -61,6 +68,11 @@ public class FridgesResource {
         }
 
         final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.getByUserId(userId));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         final FridgeDTO fridge = response.getFridgeContent();
         if (fridge == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fridge not found");
@@ -82,7 +94,8 @@ public class FridgesResource {
             @ApiResponse(responseCode = "403", description = "Access denied",
                     content = @Content),
             @ApiResponse(responseCode = "500", description = "Internal server error",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PutMapping("/{userId}")
     @ResponseBody
@@ -95,8 +108,12 @@ public class FridgesResource {
 
         final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.updateByUserId(userId, items));
 
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         if (!response.isWasSuccess()) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, response.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, response.getErrorMessage());
         }
 
         final FridgeDTO fridge = response.getFridgeContent();
@@ -110,7 +127,8 @@ public class FridgesResource {
             @ApiResponse(responseCode = "403", description = "Access denied",
                     content = @Content),
             @ApiResponse(responseCode = "400", description = "Bad request",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @DeleteMapping("/{userId}/{productId}")
     public ResponseEntity<Void> deleteFridgeItem(
@@ -121,14 +139,24 @@ public class FridgesResource {
         }
 
         final FridgeResponseMessage response = fridgeSender.sendRequest(FridgeRequestMessage.deleteByUserAndProduct(userId, productId));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         if (!response.isWasSuccess()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, response.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, response.getErrorMessage());
         }
         return ResponseEntity.noContent().build();
     }
 
     private ProductDTO[] getProductsByIds(long[] ids) {
         final ProductsResponseMessage response = productsSender.sendRequest(new ProductsRequestMessage(ids));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         return response.getProducts();
     }
 

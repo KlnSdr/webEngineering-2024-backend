@@ -7,7 +7,6 @@ import java.util.List;
 
 
 public class RecipeResponseMessage extends BaseMessage {
-    private String message;
     private List<RecipeDTO> recipes;
     private RecipeDTO recipe;
     private boolean wasSuccessful;
@@ -18,18 +17,6 @@ public class RecipeResponseMessage extends BaseMessage {
 
     public RecipeResponseMessage(List<RecipeDTO> recipes) {
         this.recipes = recipes;
-    }
-
-    public RecipeResponseMessage(String message) {
-        this.message = message;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     public List<RecipeDTO> getRecipes() {

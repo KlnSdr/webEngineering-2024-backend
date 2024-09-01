@@ -1,5 +1,6 @@
 package com.sks.gateway.recipes.rest;
 
+import com.sks.gateway.common.MessageErrorHandler;
 import com.sks.gateway.util.UserHelper;
 import com.sks.recipes.api.RecipeRequestMessage;
 import com.sks.recipes.api.RecipeResponseMessage;
@@ -32,6 +33,9 @@ public class RecipesResourceTest {
     @Mock
     private Principal principal;
 
+    @Mock
+    MessageErrorHandler messageErrorHandler;
+
     private RecipesResource controller;
 
     @BeforeEach
@@ -39,7 +43,8 @@ public class RecipesResourceTest {
         recipeSender = mock(RecipeSender.class);
         userHelper = mock(UserHelper.class);
         principal = mock(Principal.class);
-        controller = new RecipesResource(recipeSender, userHelper);
+        messageErrorHandler = mock(MessageErrorHandler.class);
+        controller = new RecipesResource(recipeSender, userHelper, messageErrorHandler);
     }
 
     @Test
@@ -68,6 +73,20 @@ public class RecipesResourceTest {
     }
 
     @Test
+    void getRecipeByIdReturns500WhenErrorOnMessageSend() {
+        final RecipeResponseMessage responseMessage = new RecipeResponseMessage();
+        responseMessage.setDidError(true);
+        when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
+        doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(messageErrorHandler).handle(responseMessage);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.getRecipeById(1);
+        });
+
+        assertEquals("Internal Server Error", exception.getReason());
+    }
+
+    @Test
     void getMultipleRecipesByIdReturnsRecipes() {
         long[] ids = {1L, 2L};
         RecipeResponseMessage response = mock(RecipeResponseMessage.class);
@@ -84,6 +103,20 @@ public class RecipesResourceTest {
         assertEquals(2, result.length);
         assertEquals(recipe1, result[0]);
         assertEquals(recipe2, result[1]);
+    }
+
+    @Test
+    void getMultipleRecipeReturns500WhenErrorOnMessageSend() {
+        final RecipeResponseMessage responseMessage = new RecipeResponseMessage();
+        responseMessage.setDidError(true);
+        when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
+        doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(messageErrorHandler).handle(responseMessage);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.getMultipleRecipesById(new long[]{1, 2});
+        });
+
+        assertEquals("Internal Server Error", exception.getReason());
     }
 
     @Test
@@ -110,6 +143,24 @@ public class RecipesResourceTest {
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> controller.createRecipe(createRecipeDTO, principal));
 
         assertEquals(exception.getStatusCode(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void createRecipeReturns500WhenErrorOnMessageSend() {
+        final RecipeResponseMessage responseMessage = new RecipeResponseMessage();
+        responseMessage.setDidError(true);
+        UserDTO user = new UserDTO();
+        user.setUserId(1L);
+
+        when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
+        when(userHelper.getCurrentInternalUser(principal)).thenReturn(user);
+        doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(messageErrorHandler).handle(responseMessage);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.createRecipe(new CreateRecipeDTO(), principal);
+        });
+
+        assertEquals("Internal Server Error", exception.getReason());
     }
 
     @Test
@@ -142,6 +193,26 @@ public class RecipesResourceTest {
     }
 
     @Test
+    void updateRecipeReturns500WhenErrorOnMessageSend() {
+        final RecipeResponseMessage responseMessage = new RecipeResponseMessage();
+        responseMessage.setDidError(true);
+        UserDTO user = new UserDTO();
+        user.setUserId(1L);
+        final CreateRecipeDTO recipe = new CreateRecipeDTO();
+        recipe.setId(1);
+
+        when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
+        when(userHelper.getCurrentInternalUser(principal)).thenReturn(user);
+        doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(messageErrorHandler).handle(responseMessage);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.updateRecipe(1, recipe, principal);
+        });
+
+        assertEquals("Internal Server Error", exception.getReason());
+    }
+
+    @Test
     void deleteRecipeReturnsNoContentWhenSuccessful() {
         int id = 1;
         RecipeResponseMessage response = mock(RecipeResponseMessage.class);
@@ -163,5 +234,19 @@ public class RecipesResourceTest {
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> controller.deleteRecipe(id));
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+    }
+
+    @Test
+    void deleteRecipeReturns500WhenErrorOnMessageSend() {
+        final RecipeResponseMessage responseMessage = new RecipeResponseMessage();
+        responseMessage.setDidError(true);
+        when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
+        doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(messageErrorHandler).handle(responseMessage);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.deleteRecipe(1);
+        });
+
+        assertEquals("Internal Server Error", exception.getReason());
     }
 }

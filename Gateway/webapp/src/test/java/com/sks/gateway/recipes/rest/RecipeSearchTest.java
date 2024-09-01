@@ -1,5 +1,6 @@
 package com.sks.gateway.recipes.rest;
 
+import com.sks.gateway.common.MessageErrorHandler;
 import com.sks.recipes.api.RecipeRequestMessage;
 import com.sks.recipes.api.RecipeResponseMessage;
 import com.sks.recipes.api.RecipeSender;
@@ -7,28 +8,32 @@ import com.sks.recipes.api.dto.RecipeDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class RecipeSearchTest {
 
     @Mock
     private RecipeSender sender;
+    @Mock
+    private MessageErrorHandler errorHandler;
+
     private SearchResource controller;
 
     @BeforeEach
     public void setUp() {
         sender = mock(RecipeSender.class);
-        controller = new SearchResource(sender);
+        errorHandler = mock(MessageErrorHandler.class);
+        controller = new SearchResource(sender, errorHandler);
     }
 
     @Test
@@ -56,6 +61,20 @@ public class RecipeSearchTest {
     }
 
     @Test
+    public void testSearchRecipesByString_Throws500OnMessageError() {
+        RecipeResponseMessage responseMessage = new RecipeResponseMessage();
+        responseMessage.setDidError(true);
+        when(sender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
+        doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(errorHandler).handle(responseMessage);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.getAllRecipesBySearchString("Tomatensoße");
+        });
+
+        assertEquals("Internal Server Error", exception.getReason());
+    }
+
+    @Test
     public void testSearchRecipeByProducts() {
         List<RecipeDTO> recipe = List.of(new RecipeDTO(1L, "Tomatensoße", "description", "imageUri", false, new Timestamp(0L), "ownerUri", Collections.singletonList("0"), Collections.singletonList("Tomaten"), Map.of("Tomaten", 3)));
         RecipeResponseMessage responseMessage = new RecipeResponseMessage(recipe);
@@ -77,7 +96,17 @@ public class RecipeSearchTest {
         assertEquals(recipe.get(0).getProductQuantities(), result.get(0).getProductQuantities());
     }
 
+    @Test
+    public void testSearchRecipesByProducts_Throws500OnMessageError() {
+        RecipeResponseMessage responseMessage = new RecipeResponseMessage();
+        responseMessage.setDidError(true);
+        when(sender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
+        doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(errorHandler).handle(responseMessage);
 
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            controller.searchRecipeByProducts(new String[]{"Tomaten"});
+        });
 
-
+        assertEquals("Internal Server Error", exception.getReason());
+    }
 }

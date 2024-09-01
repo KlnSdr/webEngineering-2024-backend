@@ -149,7 +149,6 @@ public class RecipesResourceRestTest {
     public void testDeleteRecipe_Failure() throws Exception {
         RecipeResponseMessage responseMessage = new RecipeResponseMessage();
         responseMessage.setWasSuccessful(false);
-        responseMessage.setMessage("Failed to delete recipe");
 
         when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
 

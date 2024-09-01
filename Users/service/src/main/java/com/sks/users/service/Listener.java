@@ -19,12 +19,25 @@ public class Listener implements UsersListener {
 
     @Override
     public void listen(UsersRequestMessage message) {
-        final UsersResponseMessage response = switch (message.getRequestType()) {
-            case GET_BY_ID -> handleGetById(message);
-            case GET_BY_IDP -> handleGetByIdp(message);
-            case CREATE -> handleCreate(message);
-        };
+        UsersResponseMessage response;
+        try {
+            response = switch (message.getRequestType()) {
+                case GET_BY_ID -> handleGetById(message);
+                case GET_BY_IDP -> handleGetByIdp(message);
+                case CREATE -> handleCreate(message);
+            };
+        } catch (Exception e) {
+            response = buildErrorResponse(e);
+        }
         sender.sendResponse(message, response);
+    }
+
+    private UsersResponseMessage buildErrorResponse(Exception e) {
+        UsersResponseMessage response = new UsersResponseMessage();
+        response.setDidError(true);
+        response.setErrorMessage("Error while processing message");
+        response.setException(e);
+        return response;
     }
 
     private UsersResponseMessage handleGetById(UsersRequestMessage message) {

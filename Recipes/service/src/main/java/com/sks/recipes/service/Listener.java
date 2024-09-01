@@ -1,9 +1,11 @@
 package com.sks.recipes.service;
 
 import com.sks.recipes.api.dto.CreateRecipeDTO;
+import com.sks.recipes.api.RecipeRequestMessage;
+import com.sks.recipes.api.RecipeResponseMessage;
+import com.sks.recipes.api.RecipeSender;
+import com.sks.recipes.api.RecipesListener;
 import com.sks.recipes.api.dto.RecipeDTO;
-import com.sks.recipes.api.*;
-
 import com.sks.recipes.service.data.entity.RecipeEntity;
 import com.sks.recipes.service.data.service.RecipeService;
 import org.springframework.stereotype.Component;
@@ -25,14 +27,27 @@ public class Listener implements RecipesListener {
 
     @Override
     public void listen(RecipeRequestMessage message) {
-        final RecipeResponseMessage response = switch (message.getRequestType()) {
-            case GET_BY_ID -> getById(message.getIds());
-            case UPDATE -> update(message.getRecipe());
-            case DELETE -> delete(message.getIds());
-            case SEARCH_BY_NAME -> getByName(message.getMessage());
-            case SEARCH_BY_PRODUCTS -> getByProduct(message.getProducts());
-        };
+        RecipeResponseMessage response;
+        try {
+            response = switch (message.getRequestType()) {
+                case GET_BY_ID -> getById(message.getIds());
+                case UPDATE -> update(message.getRecipe());
+                case DELETE -> delete(message.getIds());
+                case SEARCH_BY_NAME -> getByName(message.getMessage());
+                case SEARCH_BY_PRODUCTS -> getByProduct(message.getProducts());
+            };
+        } catch (Exception e) {
+            response = buildErrorResponse(e);
+        }
         sender.sendResponse(message, response);
+    }
+
+    private RecipeResponseMessage buildErrorResponse(Exception e) {
+        RecipeResponseMessage response = new RecipeResponseMessage();
+        response.setDidError(true);
+        response.setErrorMessage("Error while processing message");
+        response.setException(e);
+        return response;
     }
 
     private RecipeResponseMessage getById(long[] ids) {
@@ -91,7 +106,7 @@ public class Listener implements RecipesListener {
     }
 
     private RecipeDTO map(RecipeEntity recipeEntity) {
-        return new RecipeDTO(recipeEntity.getId(), recipeEntity.getTitle(), recipeEntity.getDescription(), recipeEntity.getImageUri(), recipeEntity.isPrivate(), recipeEntity.getCreationDate(), recipeEntity.getOwnerUri(), recipeEntity.getLikedByUserUris(),recipeEntity.getProductUris(), recipeEntity.getProductQuantities());
+        return new RecipeDTO(recipeEntity.getId(), recipeEntity.getTitle(), recipeEntity.getDescription(), recipeEntity.getImageUri(), recipeEntity.isPrivate(), recipeEntity.getCreationDate(), recipeEntity.getOwnerUri(), recipeEntity.getLikedByUserUris(), recipeEntity.getProductUris(), recipeEntity.getProductQuantities());
     }
 
     private long[] map(List<Long> ids) {

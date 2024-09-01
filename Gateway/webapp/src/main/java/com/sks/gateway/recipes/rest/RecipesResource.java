@@ -1,5 +1,6 @@
 package com.sks.gateway.recipes.rest;
 
+import com.sks.gateway.common.MessageErrorHandler;
 import com.sks.gateway.util.UserHelper;
 import com.sks.recipes.api.RecipeRequestMessage;
 import com.sks.recipes.api.RecipeResponseMessage;
@@ -26,10 +27,12 @@ import java.security.Principal;
 public class RecipesResource {
     private final UserHelper userHelper;
     private final RecipeSender sender;
+    private final MessageErrorHandler messageErrorHandler;
 
-    public RecipesResource(RecipeSender sender, UserHelper userHelper) {
+    public RecipesResource(RecipeSender sender, UserHelper userHelper, MessageErrorHandler messageErrorHandler) {
         this.sender = sender;
         this.userHelper = userHelper;
+        this.messageErrorHandler = messageErrorHandler;
     }
 
     @Operation(summary = "Get recipe by ID")
@@ -46,13 +49,18 @@ public class RecipesResource {
                     responseCode = "404",
                     description = "Recipe not found",
                     content = @Content
-            )
+            ),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping("/{id}")
     @ResponseBody
     public RecipeDTO getRecipeById(
             @Parameter(description = "ID of the recipe to be fetched") @PathVariable("id") int id) {
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getById(id));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
 
         if (response.getRecipes().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipe with id " + id + " not found");
@@ -70,13 +78,17 @@ public class RecipesResource {
                             mediaType = "application/json",
                             array = @ArraySchema(schema = @Schema(implementation = RecipeDTO.class))
                     )}
-            )
+            ),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PostMapping("/get-multiple")
     @ResponseBody
     public RecipeDTO[] getMultipleRecipesById(
             @Parameter(description = "IDs of the recipes to be fetched") @RequestBody long[] ids) {
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getById(ids));
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
         return response.getRecipes().toArray(new RecipeDTO[0]);
     }
 
@@ -88,7 +100,8 @@ public class RecipesResource {
             @ApiResponse(responseCode = "401", description = "User not authenticated",
                     content = @Content),
             @ApiResponse(responseCode = "500", description = "Failed to create recipe",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PostMapping
     @ResponseBody
@@ -107,7 +120,8 @@ public class RecipesResource {
             @ApiResponse(responseCode = "401", description = "User not authenticated",
                     content = @Content),
             @ApiResponse(responseCode = "500", description = "Failed to update recipe",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PutMapping("/{id}")
     @ResponseBody
@@ -131,6 +145,10 @@ public class RecipesResource {
 
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.update(recipe));
 
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         if (response.getRecipe() == null) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create recipe");
         }
@@ -143,12 +161,17 @@ public class RecipesResource {
             @ApiResponse(responseCode = "204", description = "Recipe deleted",
                     content = @Content),
             @ApiResponse(responseCode = "500", description = "Failed to delete recipe",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecipe(
             @Parameter(description = "ID of the recipe to be deleted") @PathVariable("id") int id) {
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.delete(id));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
 
         if (!response.isWasSuccessful()) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete recipe with id " + id);
