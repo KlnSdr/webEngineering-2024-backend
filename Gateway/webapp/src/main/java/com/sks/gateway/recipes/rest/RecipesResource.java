@@ -7,6 +7,13 @@ import com.sks.recipes.api.RecipeSender;
 import com.sks.recipes.api.dto.CreateRecipeDTO;
 import com.sks.recipes.api.dto.RecipeDTO;
 import com.sks.users.api.UserDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,9 +32,26 @@ public class RecipesResource {
         this.userHelper = userHelper;
     }
 
+    @Operation(summary = "Get recipe by ID")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Found the recipe",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RecipeDTO.class)
+                    )}
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Recipe not found",
+                    content = @Content
+            )
+    })
     @GetMapping("/{id}")
     @ResponseBody
-    public RecipeDTO getRecipeById(@PathVariable("id") int id) {
+    public RecipeDTO getRecipeById(
+            @Parameter(description = "ID of the recipe to be fetched") @PathVariable("id") int id) {
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getById(id));
 
         if (response.getRecipes().isEmpty()) {
@@ -37,22 +61,59 @@ public class RecipesResource {
         return response.getRecipes().getFirst();
     }
 
+    @Operation(summary = "Get multiple recipes by IDs")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Found the recipes",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = RecipeDTO.class))
+                    )}
+            )
+    })
     @PostMapping("/get-multiple")
     @ResponseBody
-    public RecipeDTO[] getMultipleRecipesById(@RequestBody long[] ids) {
+    public RecipeDTO[] getMultipleRecipesById(
+            @Parameter(description = "IDs of the recipes to be fetched") @RequestBody long[] ids) {
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getById(ids));
         return response.getRecipes().toArray(new RecipeDTO[0]);
     }
 
+    @Operation(summary = "Create a new recipe")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Recipe created",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = RecipeDTO.class)) }),
+            @ApiResponse(responseCode = "401", description = "User not authenticated",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to create recipe",
+                    content = @Content)
+    })
     @PostMapping
     @ResponseBody
-    public RecipeDTO createRecipe(@RequestBody CreateRecipeDTO recipe, Principal principal) {
+    public RecipeDTO createRecipe(
+            @Parameter(description = "Recipe to be created") @RequestBody CreateRecipeDTO recipe, Principal principal) {
         return createUpdateRecipe(recipe, principal);
     }
 
+    @Operation(summary = "Update an existing recipe")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Recipe updated",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = RecipeDTO.class)) }),
+            @ApiResponse(responseCode = "400", description = "Id in path and body do not match",
+                    content = @Content),
+            @ApiResponse(responseCode = "401", description = "User not authenticated",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to update recipe",
+                    content = @Content)
+    })
     @PutMapping("/{id}")
     @ResponseBody
-    public RecipeDTO updateRecipe(@PathVariable("id") int id, @RequestBody CreateRecipeDTO recipe, Principal principal) {
+    public RecipeDTO updateRecipe(
+            @Parameter(description = "ID of the recipe to be updated") @PathVariable("id") int id,
+            @Parameter(description = "Updated recipe data") @RequestBody CreateRecipeDTO recipe, Principal principal) {
         if (id != recipe.getId()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Id in path and body do not match");
         }
@@ -77,8 +138,16 @@ public class RecipesResource {
         return response.getRecipe();
     }
 
+    @Operation(summary = "Delete a recipe by ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Recipe deleted",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to delete recipe",
+                    content = @Content)
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRecipe(@PathVariable("id") int id) {
+    public ResponseEntity<Void> deleteRecipe(
+            @Parameter(description = "ID of the recipe to be deleted") @PathVariable("id") int id) {
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.delete(id));
 
         if (!response.isWasSuccessful()) {

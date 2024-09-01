@@ -7,6 +7,13 @@ import com.sks.products.api.ProductDTO;
 import com.sks.products.api.ProductsRequestMessage;
 import com.sks.products.api.ProductsResponseMessage;
 import com.sks.products.api.ProductsSender;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +27,6 @@ import java.util.List;
 @RequestMapping("/fridge")
 public class FridgesResource {
 
-    //Integrating the ProductsSender for communicating with the product service
     private final ProductsSender productsSender;
     private final FridgeSender fridgeSender;
     private final AccessVerifier accessVerifier;
@@ -31,10 +37,25 @@ public class FridgesResource {
         this.accessVerifier = accessVerifier;
     }
 
-    //Get information of fridge items
+    @Operation(summary = "Get information of fridge items")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Found the fridge items",
+                    content = {
+                            @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = FridgeItemDTO.class))
+                            )
+                    }),
+            @ApiResponse(responseCode = "403", description = "Access denied",content = @Content),
+            @ApiResponse(responseCode = "404", description = "Fridge not found", content = @Content)
+    })
     @GetMapping("/{userId}")
     @ResponseBody
-    public List<FridgeItemDTO> getFridgeItems(@PathVariable("userId") long userId, Principal principal) {
+    public List<FridgeItemDTO> getFridgeItems(
+            @Parameter(description = "ID of the user whose fridge items are to be fetched") @PathVariable("userId") long userId,
+            Principal principal) {
         if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
@@ -47,11 +68,26 @@ public class FridgesResource {
         return map(fridge);
     }
 
-    //Add a new product to fridge or update an existing
+    @Operation(summary = "Add a new product to fridge or update an existing one")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Fridge items updated",
+                    content = {
+                    @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = FridgeItemDTO.class))
+                    )
+            }),
+            @ApiResponse(responseCode = "403", description = "Access denied",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content)
+    })
     @PutMapping("/{userId}")
     @ResponseBody
     public List<FridgeItemDTO> addOrUpdateFridgeItems(
-            @PathVariable("userId") long userId,
+            @Parameter(description = "ID of the user whose fridge items are to be updated") @PathVariable("userId") long userId,
             @RequestBody List<FridgeAddItemDTO> items, Principal principal) {
         if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
@@ -67,11 +103,19 @@ public class FridgesResource {
         return map(fridge);
     }
 
-    //Delete product from fridge
+    @Operation(summary = "Delete product from fridge")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Product deleted",
+                    content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied",
+                    content = @Content),
+            @ApiResponse(responseCode = "400", description = "Bad request",
+                    content = @Content)
+    })
     @DeleteMapping("/{userId}/{productId}")
     public ResponseEntity<Void> deleteFridgeItem(
-            @PathVariable("userId") long userId,
-            @PathVariable("productId") long productId, Principal principal) {
+            @Parameter(description = "ID of the user whose fridge item is to be deleted") @PathVariable("userId") long userId,
+            @Parameter(description = "ID of the product to be deleted") @PathVariable("productId") long productId, Principal principal) {
         if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
