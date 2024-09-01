@@ -35,6 +35,13 @@ public class SurveyRequestMessage extends BaseMessage {
         this.surveyRequestType = surveyRequestType;
     }
 
+    public static SurveyRequestMessage getParticipating(String userUri) {
+        final SurveyRequestMessage surveyRequestMessage = new SurveyRequestMessage();
+        surveyRequestMessage.setUserUri(userUri);
+        surveyRequestMessage.setRequestType(SurveyRequestType.GET_SurveysByParticipant);
+        return surveyRequestMessage;
+    }
+
 
     public String getMessage() {
         return message;

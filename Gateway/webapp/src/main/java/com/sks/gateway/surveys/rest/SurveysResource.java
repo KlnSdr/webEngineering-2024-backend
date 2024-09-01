@@ -1,6 +1,11 @@
 package com.sks.gateway.surveys.rest;
 
+<<<<<<< HEAD
 import com.sks.gateway.util.AccessVerifier;
+=======
+import com.sks.gateway.surveys.dto.MySurveysDTO;
+import com.sks.gateway.util.UserHelper;
+>>>>>>> db9997e ([BACKEND-36]: change endpoint /surveys/user/<id> to /surveys/my to return all owned and participating surveys)
 import com.sks.surveys.api.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +21,10 @@ import java.util.List;
 public class SurveysResource {
 
     private final SurveySender surveySender;
-    private final AccessVerifier accessVerifier;
     private final UserHelper userHelper;
 
-    public SurveysResource(SurveySender surveySender , AccessVerifier accessVerifier, UserHelper userHelper) {
+    public SurveysResource(SurveySender surveySender , UserHelper userHelper) {
         this.surveySender = surveySender;
-        this.accessVerifier = accessVerifier;
         this.userHelper = userHelper;
     }
 
@@ -48,20 +51,23 @@ public class SurveysResource {
 
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/my")
     @ResponseBody
-    public SurveyDTO[] getSurveysByUserId(@PathVariable("userId") int userId, Principal principal) {
+    public MySurveysDTO getSurveysByUserId(Principal principal) {
+        final UserDTO user = userHelper.getCurrentInternalUser(principal);
 
-        if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
 
-        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/users/id/" + userId, SurveyRequestType.GET_SurveyByOwner));
-        if (response.getSurveys().length == 0) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No surveys found");}
+        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/users/id/" + user.getUserId(), SurveyRequestType.GET_SurveyByOwner));
+        final SurveyDTO[] ownedSurveys = response.getSurveys();
 
-        return response.getSurveys();
-        };
+        final SurveyResponseMessage responseParticipating = surveySender.sendRequest(SurveyRequestMessage.getParticipating("/users/id/" + user.getUserId()));
+        final SurveyDTO[] participatingSurveys = responseParticipating.getSurveys();
+
+        return new MySurveysDTO(ownedSurveys, participatingSurveys);
+    };
 
     @PostMapping
     @ResponseBody
