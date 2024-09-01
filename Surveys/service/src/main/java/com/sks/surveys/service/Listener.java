@@ -33,6 +33,7 @@ public class Listener implements SurveyListener {
         final SurveyResponseMessage response = switch (request.getRequestType()) {
             case GET_SurveyById -> getSurveyById(request.getSurveyId());
             case GET_SurveyByOwner -> getSurveysByOwner(request.getOwnerUri());
+            case GET_SurveysByParticipant -> getSurveysByParticipant(request.getUserUri());
             case POST_SaveSurvey -> handleCreateSurvey(request.getSurvey());
             case DELETE_DeleteSurvey -> handleDeleteSurvey(request.getSurveyId());
             case PUT_UpdateSurvey -> handleUpdateSurvey(request.getSurvey());
@@ -58,6 +59,14 @@ public class Listener implements SurveyListener {
     private SurveyResponseMessage getSurveysByOwner(String ownerUri) {
         final SurveyResponseMessage response = new SurveyResponseMessage();
         List<SurveyEntity> surveyEntities = service.getSurveysByOwnerUri(ownerUri);
+        response.setSurveys(surveyEntities.stream().map(this::map).toArray(SurveyDTO[]::new));
+
+        return response;
+    }
+
+    private SurveyResponseMessage getSurveysByParticipant(String participantUri) {
+        final SurveyResponseMessage response = new SurveyResponseMessage();
+        List<SurveyEntity> surveyEntities = service.getSurveysByParticipant(participantUri);
         response.setSurveys(surveyEntities.stream().map(this::map).toArray(SurveyDTO[]::new));
 
         return response;
