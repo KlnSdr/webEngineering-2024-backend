@@ -1,12 +1,16 @@
 package com.sks.gateway.surveys.rest;
 
-<<<<<<< HEAD
-import com.sks.gateway.util.AccessVerifier;
-=======
 import com.sks.gateway.surveys.dto.MySurveysDTO;
 import com.sks.gateway.util.UserHelper;
->>>>>>> db9997e ([BACKEND-36]: change endpoint /surveys/user/<id> to /surveys/my to return all owned and participating surveys)
 import com.sks.surveys.api.*;
+import com.sks.users.api.UserDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.util.List;
-
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/surveys")
@@ -23,14 +27,23 @@ public class SurveysResource {
     private final SurveySender surveySender;
     private final UserHelper userHelper;
 
-    public SurveysResource(SurveySender surveySender , UserHelper userHelper) {
+    public SurveysResource(SurveySender surveySender, UserHelper userHelper) {
         this.surveySender = surveySender;
         this.userHelper = userHelper;
     }
 
+    @Operation(summary = "Get survey by ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found the survey", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SurveyDTO.class))}),
+            @ApiResponse(responseCode = "404", description = "Survey not found", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    })
     @GetMapping("/{id}")
     @ResponseBody
-    public SurveyDTO getSurveyById(@PathVariable("id") Integer id, Principal principal) {
+    public SurveyDTO getSurveyById(
+            @Parameter(description = "ID of the survey to be fetched") @PathVariable("id") Integer id,
+            Principal principal) {
         final UserDTO user = userHelper.getCurrentInternalUser(principal);
 
         if (user == null) {
@@ -38,7 +51,7 @@ public class SurveysResource {
         }
 
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(id, SurveyRequestType.GET_SurveyById));
-        if(response.getSurveys().length == 0){
+        if (response.getSurveys().length == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Survey not found");
         }
 
@@ -48,9 +61,13 @@ public class SurveysResource {
         }
 
         return response.getSurveys()[0];
-
     }
 
+    @Operation(summary = "Get surveys by user ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found the surveys", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = MySurveysDTO.class)))}),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    })
     @GetMapping("/my")
     @ResponseBody
     public MySurveysDTO getSurveysByUserId(Principal principal) {
@@ -67,11 +84,20 @@ public class SurveysResource {
         final SurveyDTO[] participatingSurveys = responseParticipating.getSurveys();
 
         return new MySurveysDTO(ownedSurveys, participatingSurveys);
-    };
+    }
 
+    @Operation(summary = "Create a new survey")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Survey created", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SurveyDTO.class))}),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
+            @ApiResponse(responseCode = "400", description = "Survey is not valid", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to create survey", content = @Content)
+    })
     @PostMapping
     @ResponseBody
-    public SurveyDTO createSurvey(@RequestBody SurveyDTO survey, Principal principal) {
+    public SurveyDTO createSurvey(
+            @Parameter(description = "Survey to be created") @RequestBody SurveyDTO survey,
+            Principal principal) {
         final UserDTO user = userHelper.getCurrentInternalUser(principal);
 
         if (user == null) {
@@ -83,15 +109,24 @@ public class SurveysResource {
         }
         survey.setCreator("/users/id/" + user.getUserId());
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(survey, SurveyRequestType.POST_SaveSurvey));
-        if(response.getSurveys().length == 0){
+        if (response.getSurveys().length == 0) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create survey");
         }
         return response.getSurveys()[0];
     }
 
+    @Operation(summary = "Delete a survey")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Survey deleted", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Survey not found", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    })
     @DeleteMapping("/{id}")
     @ResponseBody
-    public ResponseEntity<Void> deleteSurvey(@PathVariable("id") int id, Principal principal) {
+    public ResponseEntity<Void> deleteSurvey(
+            @Parameter(description = "ID of the survey to be deleted") @PathVariable("id") int id,
+            Principal principal) {
         final UserDTO user = userHelper.getCurrentInternalUser(principal);
 
         if (user == null) {
@@ -99,7 +134,7 @@ public class SurveysResource {
         }
 
         final SurveyResponseMessage responseGet = surveySender.sendRequest(new SurveyRequestMessage(id, SurveyRequestType.GET_SurveyById));
-        if(responseGet.getSurveys().length == 0){
+        if (responseGet.getSurveys().length == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Survey not found");
         }
 
@@ -114,9 +149,21 @@ public class SurveysResource {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @Operation(summary = "Update a survey")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Survey updated", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SurveyDTO.class))}),
+            @ApiResponse(responseCode = "400", description = "Survey is not valid", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Survey not found", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to update survey", content = @Content)
+    })
     @PutMapping("/{id}")
     @ResponseBody
-    public SurveyDTO updateSurvey(@PathVariable("id") int id, @RequestBody SurveyDTO survey, Principal principal) {
+    public SurveyDTO updateSurvey(
+            @Parameter(description = "ID of the survey to be updated") @PathVariable("id") int id,
+            @Parameter(description = "Updated survey data") @RequestBody SurveyDTO survey,
+            Principal principal) {
         final UserDTO user = userHelper.getCurrentInternalUser(principal);
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
@@ -128,7 +175,7 @@ public class SurveysResource {
 
         final SurveyResponseMessage responseGet = surveySender.sendRequest(new SurveyRequestMessage(id, SurveyRequestType.GET_SurveyById));
 
-        if(responseGet.getSurveys().length == 0){
+        if (responseGet.getSurveys().length == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Survey not found");
         }
 
@@ -137,15 +184,26 @@ public class SurveysResource {
         }
 
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(survey, SurveyRequestType.PUT_UpdateSurvey));
-        if(response.getSurveys().length == 0){
+        if (response.getSurveys().length == 0) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update survey");
         }
         return response.getSurveys()[0];
     }
 
+    @Operation(summary = "Vote for a recipe")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Vote successful", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SurveyDTO.class))}),
+            @ApiResponse(responseCode = "404", description = "Survey not found", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to vote for recipe", content = @Content)
+    })
     @PutMapping("/{id}/vote/{recipeId}")
     @ResponseBody
-    public SurveyDTO voteForRecipe(@PathVariable("id") int surveyId, @PathVariable("recipeId") int recipeId, Principal principal) {
+    public SurveyDTO voteForRecipe(
+            @Parameter(description = "ID of the survey") @PathVariable("id") int surveyId,
+            @Parameter(description = "ID of the recipe") @PathVariable("recipeId") int recipeId,
+            Principal principal) {
         final UserDTO user = userHelper.getCurrentInternalUser(principal);
 
         if (user == null) {
@@ -153,7 +211,7 @@ public class SurveysResource {
         }
 
         final SurveyResponseMessage responseGet = surveySender.sendRequest(new SurveyRequestMessage(surveyId, SurveyRequestType.GET_SurveyById));
-        if(responseGet.getSurveys().length == 0){
+        if (responseGet.getSurveys().length == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Survey not found");
         }
 
@@ -162,16 +220,15 @@ public class SurveysResource {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
 
-        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/recipes/" + recipeId, "/users/id/"+ user.getUserId(), surveyId, SurveyRequestType.PUT_VoteSurvey));
-        if(response.getMessage() != null){
+        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/recipes/" + recipeId, "/users/id/" + user.getUserId(), surveyId, SurveyRequestType.PUT_VoteSurvey));
+        if (response.getMessage() != null) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to vote for recipe");
         }
         return response.getSurveys()[0];
     }
 
-
     private boolean isSurveyValid(SurveyDTO survey) {
-        if(survey.getTitle().isEmpty()){
+        if (survey.getTitle().isEmpty()) {
             return false;
         }
         if (survey.getParticipants() == null) {
@@ -181,9 +238,5 @@ public class SurveysResource {
             return false;
         }
         return true;
-
     }
-
-
-
 }
