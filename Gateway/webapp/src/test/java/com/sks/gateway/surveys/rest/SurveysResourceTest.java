@@ -1,5 +1,7 @@
 package com.sks.gateway.surveys.rest;
 
+import com.sks.gateway.common.MessageErrorHandler;
+import com.sks.gateway.util.AccessVerifier;
 import com.sks.gateway.surveys.dto.MySurveysDTO;
 import com.sks.gateway.util.UserHelper;
 import com.sks.surveys.api.SurveyDTO;
@@ -29,13 +31,17 @@ public class SurveysResourceTest {
     @Mock
     private UserHelper userHelper;
 
+    @Mock
+    private MessageErrorHandler errorHandler;
+
     private SurveysResource controller;
 
     @BeforeEach
     void setUp() {
         sender = mock(SurveySender.class);
+        errorHandler = mock(MessageErrorHandler.class);
         userHelper = mock(UserHelper.class);
-        controller = new SurveysResource(sender, userHelper);
+        controller = new SurveysResource(sender , userHelper, errorHandler);
     }
 
     @Test
