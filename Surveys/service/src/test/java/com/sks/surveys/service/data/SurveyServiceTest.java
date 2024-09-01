@@ -8,8 +8,10 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class SurveyServiceTest {
@@ -53,5 +55,51 @@ public class SurveyServiceTest {
         SurveyEntity result = surveyService.save(survey);
 
         assertEquals(survey, result);
+    }
+
+    @Test
+    void getSurveyByIdReturnsSurvey() {
+        SurveyEntity survey = new SurveyEntity();
+        when(surveyRepository.findById(1L)).thenReturn(Optional.of(survey));
+
+        Optional<SurveyEntity> result = surveyService.getSurveyById(1L);
+
+        assertEquals(survey, result.get());
+    }
+
+    @Test
+    void getSurveyByIdReturnsEmptyOptionalWhenSurveyNotFound() {
+        when(surveyRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Optional<SurveyEntity> result = surveyService.getSurveyById(1L);
+
+        assertEquals(Optional.empty(), result);
+    }
+
+    @Test
+    void getSurveysByOwnerUriReturnsListOfSurveys() {
+        SurveyEntity survey = new SurveyEntity();
+        when(surveyRepository.findByOwnerUri("/users/42")).thenReturn(List.of(survey));
+
+        List<SurveyEntity> result = surveyService.getSurveysByOwnerUri("/users/42");
+
+        assertEquals(1, result.size());
+        assertEquals(survey, result.getFirst());
+    }
+
+    @Test
+    void getSurveysByOwnerUriReturnsEmptyListWhenNoSurveys() {
+        when(surveyRepository.findByOwnerUri("/users/42")).thenReturn(Collections.emptyList());
+
+        List<SurveyEntity> result = surveyService.getSurveysByOwnerUri("/users/42");
+
+        assertEquals(0, result.size());
+    }
+
+    @Test
+    void deleteCallsRepositoryDelete() {
+        surveyService.delete(1L);
+
+        verify(surveyRepository).deleteById(1L);
     }
 }

@@ -1,5 +1,6 @@
 package com.sks.surveys.api;
 
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 
 /**
@@ -16,5 +17,5 @@ public interface SurveyListener {
      * @param in The incoming surveys request message to be processed.
      */
     @RabbitListener(queues = SurveyQueueConfig.REQUEST_QUEUE_NAME)
-    void listen(SurveyRequestMessage in);
+    void listen(Message in);
 }

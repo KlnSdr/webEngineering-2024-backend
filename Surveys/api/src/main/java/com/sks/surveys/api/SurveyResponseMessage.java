@@ -4,10 +4,11 @@ import com.sks.base.api.BaseMessage;
 
 public class SurveyResponseMessage extends BaseMessage {
     private String message;
+    private SurveyDTO[] surveys;
+
 
     public SurveyResponseMessage() {
     }
-
     public SurveyResponseMessage(String message) {
         this.message = message;
     }
@@ -18,5 +19,13 @@ public class SurveyResponseMessage extends BaseMessage {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public SurveyDTO[] getSurveys() {
+        return surveys;
+    }
+
+    public void setSurveys(SurveyDTO[] surveys) {
+        this.surveys = surveys;
     }
 }

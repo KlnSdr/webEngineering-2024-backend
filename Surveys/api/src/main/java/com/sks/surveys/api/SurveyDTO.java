@@ -1,16 +1,16 @@
 package com.sks.surveys.api;
 
-import com.sks.recipes.api.dto.RecipeDTO;
-
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 public class SurveyDTO {
-    private int id;
+    private long id;
     private String title;
     private String[] participants;
     private String creator;
-    private Map<RecipeDTO, Integer> RecipeVote;
+    private Map<String, Integer> recipeVote;
+    private List<String> options;
     private Date creationDate;
 
     public SurveyDTO() {
@@ -21,23 +21,24 @@ public class SurveyDTO {
         this.title = title;
     }
 
-    public SurveyDTO(int id, String title, String[] participants, String creator, Map<RecipeDTO, Integer> RecipeVote, Date creationDate) {
+    public SurveyDTO(long id, String title, String[] participants, String creator, Map<String, Integer> RecipeVote,List<String> option, Date creationDate) {
         this.id = id;
         this.title = title;
         this.participants = participants;
         this.creator = creator;
-        this.RecipeVote = RecipeVote;
+        this.recipeVote = RecipeVote;
+        this.options = option;
         this.creationDate = creationDate;
     }
 
 
 
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -65,12 +66,12 @@ public class SurveyDTO {
         this.creator = creator;
     }
 
-    public Map<RecipeDTO, Integer> getRecipeVote() {
-        return RecipeVote;
+    public Map<String, Integer> getRecipeVote() {
+        return recipeVote;
     }
 
-    public void setRecipeVote(Map<RecipeDTO, Integer> recipeVote) {
-        RecipeVote = recipeVote;
+    public void setRecipeVote(Map<String, Integer> recipeVote) {
+        this.recipeVote = recipeVote;
     }
 
     public Date getCreationDate() {
@@ -79,5 +80,13 @@ public class SurveyDTO {
 
     public void setCreationDate(Date creationDate) {
         this.creationDate = creationDate;
+    }
+
+    public List<String> getOptions() {
+        return options;
+    }
+
+    public void setOptions(List<String> options) {
+        this.options = options;
     }
 }

@@ -1,93 +1,131 @@
 package com.sks.gateway.surveys.rest;
 
-import com.sks.recipes.api.dto.RecipeDTO;
-import com.sks.surveys.api.SurveyDTO;
+import com.sks.gateway.util.AccessVerifier;
+import com.sks.surveys.api.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.util.Date;
-import java.util.Map;
+import java.security.Principal;
+import java.util.List;
 
 
 @RestController
 @RequestMapping("/surveys")
 public class SurveysResource {
 
-    @GetMapping("/{id}")
-    @ResponseBody
-    public SurveyDTO getSurveyById(@PathVariable("id") Integer id) {
-        return new SurveyDTO(
-                id,
-                "Survey",
-                new String[]{"/users/41", "/users/40"},
-                "/users/42",
-                Map.of(new RecipeDTO(), 1),
-                Date.from(Instant.now())
-        );
+    private final SurveySender surveySender;
+    private final AccessVerifier accessVerifier;
+
+    public SurveysResource(SurveySender surveySender , AccessVerifier accessVerifier) {
+        this.surveySender = surveySender;
+        this.accessVerifier = accessVerifier;
     }
 
-    @GetMapping("user/{userId}")
+    @GetMapping("/{id}/user/{userId}")
     @ResponseBody
-    public SurveyDTO[] getSurveysByUserId(@PathVariable("userId") int userId) {
-        return new SurveyDTO[]{
-                new SurveyDTO(
-                        1,
-                        "Allgemeine Verkehrskontrolle"
+    public SurveyDTO getSurveyById(@PathVariable("id") Integer id, @PathVariable("userId") long userId) {
+        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(id, SurveyRequestType.GET_SurveyById));
+        if(response.getSurveys().length == 0){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Survey not found");
+        }
 
-                ),
-                new SurveyDTO(
-                        2,
-                        "Wie zufrieden sind Sie mit der Mensa?"
-                )
+        List<String> participants = List.of(response.getSurveys()[0].getParticipants());
+        if (!participants.contains("/users/id/" + userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+        return response.getSurveys()[0];
+
+    }
+
+    @GetMapping("/user/{userId}")
+    @ResponseBody
+    public SurveyDTO[] getSurveysByUserId(@PathVariable("userId") int userId, Principal principal) {
+
+        if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/users/id/" + userId, SurveyRequestType.GET_SurveyByOwner));
+        if (response.getSurveys().length == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No surveys found");}
+
+        return response.getSurveys();
         };
-    }
 
-    @PostMapping
+    @PostMapping("/user/{userId}")
     @ResponseBody
-    public SurveyDTO createSurvey(@RequestBody SurveyDTO survey) {
-        final SurveyDTO mappedSurvey = map(survey);
-        mappedSurvey.setId(42);
-        mappedSurvey.setCreationDate(Date.from(Instant.now()));
-        return mappedSurvey;
+    public SurveyDTO createSurvey(@RequestBody SurveyDTO survey, @PathVariable("userId") long userId, Principal principal) {
+
+        if (!accessVerifier.verifyAccessesSelf(userId, principal)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+        if (!isSurveyValid(survey)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Survey is not valid");
+        }
+        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(survey, SurveyRequestType.POST_SaveSurvey));
+        if(response.getSurveys().length == 0){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create survey");
+        }
+        return response.getSurveys()[0];
     }
 
     @DeleteMapping("/{id}")
     @ResponseBody
     public ResponseEntity<Void> deleteSurvey(@PathVariable("id") int id) {
+
+        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(id, SurveyRequestType.DELETE_DeleteSurvey));
+        if (response.getMessage() != null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, response.getMessage());
+        }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PutMapping("/{id}")
     @ResponseBody
     public SurveyDTO updateSurvey(@PathVariable("id") int id, @RequestBody SurveyDTO survey) {
-        return survey;
+        if (survey.getId() != id || !isSurveyValid(survey)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Survey is not valid");
+        }
+        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(survey, SurveyRequestType.PUT_UpdateSurvey));
+        if(response.getSurveys().length == 0){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update survey");
+        }
+        return response.getSurveys()[0];
     }
 
-    @PutMapping("/{id}/vote/{recipeId}")
+    @PutMapping("/{id}/vote/{recipeId}/{userId}")
     @ResponseBody
-    public SurveyDTO voteForRecipe(@PathVariable("id") int id, @PathVariable("recipeId") int recipeId) {
-        return new SurveyDTO(
-                id,
-                "Survey",
-                new String[]{"/users/41", "/users/40"},
-                "/users/42",
-                Map.of(new RecipeDTO(), 1),
-                Date.from(Instant.now())
-        );
+    public SurveyDTO voteForRecipe(@PathVariable("id") int surveyId, @PathVariable("recipeId") int recipeId, @PathVariable("userId") int userId) {
+
+        final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/recipes/" + recipeId, "/users/id/"+ userId, surveyId, SurveyRequestType.PUT_VoteSurvey));
+        if(response.getMessage() != null){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to vote for recipe");
+        }
+        return response.getSurveys()[0];
     }
 
-    private SurveyDTO map(SurveyDTO survey) {
-        return new SurveyDTO(
-                0,
-                survey.getTitle(),
-                survey.getParticipants(),
-                survey.getCreator(),
-                survey.getRecipeVote(),
-                null
-        );
+
+    private boolean isSurveyValid(SurveyDTO survey) {
+        if(survey.getTitle().isEmpty()){
+            return false;
+        }
+        if (survey.getParticipants() == null) {
+            return false;
+        }
+        if (survey.getCreator() == null) {
+            return false;
+        }
+        if (survey.getOptions() == null || survey.getOptions().isEmpty()) {
+            return false;
+        }
+        return true;
+
     }
+
 
 
 }
