@@ -2,6 +2,8 @@ package com.sks.gateway.surveys.rest;
 
 import com.sks.gateway.surveys.dto.MySurveysDTO;
 import com.sks.gateway.util.UserHelper;
+import com.sks.gateway.common.MessageErrorHandler;
+import com.sks.gateway.util.AccessVerifier;
 import com.sks.surveys.api.*;
 import com.sks.users.api.UserDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,10 +28,14 @@ public class SurveysResource {
 
     private final SurveySender surveySender;
     private final UserHelper userHelper;
+    private final AccessVerifier accessVerifier;
+    private final MessageErrorHandler messageErrorHandler;
 
-    public SurveysResource(SurveySender surveySender, UserHelper userHelper) {
+    public SurveysResource(SurveySender surveySender, UserHelper userHelper, AccessVerifier accessVerifier, MessageErrorHandler messageErrorHandler) {
         this.surveySender = surveySender;
         this.userHelper = userHelper;
+        this.messageErrorHandler = messageErrorHandler;
+        this.accessVerifier = accessVerifier;
     }
 
     @Operation(summary = "Get survey by ID")
@@ -37,7 +43,8 @@ public class SurveysResource {
             @ApiResponse(responseCode = "200", description = "Found the survey", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SurveyDTO.class))}),
             @ApiResponse(responseCode = "404", description = "Survey not found", content = @Content),
             @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping("/{id}")
     @ResponseBody
@@ -51,6 +58,11 @@ public class SurveysResource {
         }
 
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(id, SurveyRequestType.GET_SurveyById));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         if (response.getSurveys().length == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Survey not found");
         }
@@ -66,7 +78,8 @@ public class SurveysResource {
     @Operation(summary = "Get surveys by user ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Found the surveys", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = MySurveysDTO.class)))}),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping("/my")
     @ResponseBody
@@ -91,7 +104,8 @@ public class SurveysResource {
             @ApiResponse(responseCode = "201", description = "Survey created", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SurveyDTO.class))}),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
             @ApiResponse(responseCode = "400", description = "Survey is not valid", content = @Content),
-            @ApiResponse(responseCode = "500", description = "Failed to create survey", content = @Content)
+            @ApiResponse(responseCode = "500", description = "Failed to create survey", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PostMapping
     @ResponseBody
@@ -109,6 +123,11 @@ public class SurveysResource {
         }
         survey.setCreator("/users/id/" + user.getUserId());
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(survey, SurveyRequestType.POST_SaveSurvey));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         if (response.getSurveys().length == 0) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create survey");
         }
@@ -120,7 +139,8 @@ public class SurveysResource {
             @ApiResponse(responseCode = "204", description = "Survey deleted", content = @Content),
             @ApiResponse(responseCode = "404", description = "Survey not found", content = @Content),
             @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @DeleteMapping("/{id}")
     @ResponseBody
@@ -143,6 +163,11 @@ public class SurveysResource {
         }
 
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(id, SurveyRequestType.DELETE_DeleteSurvey));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         if (response.getMessage() != null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, response.getMessage());
         }
@@ -156,7 +181,8 @@ public class SurveysResource {
             @ApiResponse(responseCode = "404", description = "Survey not found", content = @Content),
             @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
-            @ApiResponse(responseCode = "500", description = "Failed to update survey", content = @Content)
+            @ApiResponse(responseCode = "500", description = "Failed to update survey", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PutMapping("/{id}")
     @ResponseBody
@@ -184,6 +210,11 @@ public class SurveysResource {
         }
 
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage(survey, SurveyRequestType.PUT_UpdateSurvey));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+
         if (response.getSurveys().length == 0) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update survey");
         }
@@ -196,7 +227,8 @@ public class SurveysResource {
             @ApiResponse(responseCode = "404", description = "Survey not found", content = @Content),
             @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
-            @ApiResponse(responseCode = "500", description = "Failed to vote for recipe", content = @Content)
+            @ApiResponse(responseCode = "500", description = "Failed to vote for recipe", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PutMapping("/{id}/vote/{recipeId}")
     @ResponseBody
@@ -221,6 +253,10 @@ public class SurveysResource {
         }
 
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/recipes/" + recipeId, "/users/id/" + user.getUserId(), surveyId, SurveyRequestType.PUT_VoteSurvey));
+
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
         if (response.getMessage() != null) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to vote for recipe");
         }

@@ -55,7 +55,8 @@ public class FridgesResource {
                             )
                     }),
             @ApiResponse(responseCode = "403", description = "Access denied",content = @Content),
-            @ApiResponse(responseCode = "404", description = "Fridge not found", content = @Content)
+            @ApiResponse(responseCode = "404", description = "Fridge not found", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping("/{userId}")
     @ResponseBody
@@ -93,7 +94,8 @@ public class FridgesResource {
             @ApiResponse(responseCode = "403", description = "Access denied",
                     content = @Content),
             @ApiResponse(responseCode = "500", description = "Internal server error",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PutMapping("/{userId}")
     @ResponseBody
@@ -125,7 +127,8 @@ public class FridgesResource {
             @ApiResponse(responseCode = "403", description = "Access denied",
                     content = @Content),
             @ApiResponse(responseCode = "400", description = "Bad request",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @DeleteMapping("/{userId}/{productId}")
     public ResponseEntity<Void> deleteFridgeItem(

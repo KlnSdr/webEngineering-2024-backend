@@ -38,7 +38,8 @@ public class ProductsResource {
                                     mediaType = "application/json",
                                     array = @ArraySchema(schema = @Schema(implementation = ProductDTO.class))
                             )
-                    })
+                    }),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -63,7 +64,8 @@ public class ProductsResource {
                                     schema = @Schema(implementation = ProductDTO.class)
                             )
                     }),
-            @ApiResponse(responseCode = "404", description = "Product not found", content = @Content)
+            @ApiResponse(responseCode = "404", description = "Product not found", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -95,7 +97,8 @@ public class ProductsResource {
                                     array = @ArraySchema(schema = @Schema(implementation = ProductDTO.class))
                             )
                     }),
-            @ApiResponse(responseCode = "404", description = "Products not found", content = @Content)
+            @ApiResponse(responseCode = "404", description = "Products not found", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PostMapping(value = "get-multiple", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody

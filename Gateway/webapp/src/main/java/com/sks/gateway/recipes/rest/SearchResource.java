@@ -37,7 +37,8 @@ public class SearchResource {
                     content = @Content(mediaType = "application/json",
                             array = @ArraySchema(schema = @Schema(implementation = RecipeDTO.class)))),
             @ApiResponse(responseCode = "404", description = "Recipes not found",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -64,7 +65,8 @@ public class SearchResource {
                     content = @Content(mediaType = "application/json",
                             array = @ArraySchema(schema = @Schema(implementation = RecipeDTO.class)))),
             @ApiResponse(responseCode = "404", description = "Recipes not found",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PostMapping(value = "/by-products", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody

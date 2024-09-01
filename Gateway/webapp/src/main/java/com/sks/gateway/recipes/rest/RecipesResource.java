@@ -49,7 +49,8 @@ public class RecipesResource {
                     responseCode = "404",
                     description = "Recipe not found",
                     content = @Content
-            )
+            ),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping("/{id}")
     @ResponseBody
@@ -77,7 +78,8 @@ public class RecipesResource {
                             mediaType = "application/json",
                             array = @ArraySchema(schema = @Schema(implementation = RecipeDTO.class))
                     )}
-            )
+            ),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PostMapping("/get-multiple")
     @ResponseBody
@@ -98,7 +100,8 @@ public class RecipesResource {
             @ApiResponse(responseCode = "401", description = "User not authenticated",
                     content = @Content),
             @ApiResponse(responseCode = "500", description = "Failed to create recipe",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PostMapping
     @ResponseBody
@@ -117,7 +120,8 @@ public class RecipesResource {
             @ApiResponse(responseCode = "401", description = "User not authenticated",
                     content = @Content),
             @ApiResponse(responseCode = "500", description = "Failed to update recipe",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @PutMapping("/{id}")
     @ResponseBody
@@ -157,7 +161,8 @@ public class RecipesResource {
             @ApiResponse(responseCode = "204", description = "Recipe deleted",
                     content = @Content),
             @ApiResponse(responseCode = "500", description = "Failed to delete recipe",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecipe(

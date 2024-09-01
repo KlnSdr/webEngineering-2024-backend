@@ -36,6 +36,7 @@ public class UsersResource {
             @ApiResponse(responseCode = "200", description = "Found the current user",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = Principal.class))),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping("/current")
     public Principal getCurrentUser(Principal principal) {
@@ -48,7 +49,8 @@ public class UsersResource {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = UserDTO.class))),
             @ApiResponse(responseCode = "404", description = "User not found",
-                    content = @Content)
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping("/id/{id}")
     public UserDTO getUserById(
