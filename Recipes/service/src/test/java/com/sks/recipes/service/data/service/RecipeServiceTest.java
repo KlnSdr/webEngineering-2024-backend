@@ -66,7 +66,7 @@ public class RecipeServiceTest {
         RecipeEntity recipe3 =  new RecipeEntity();
         recipe3.setTitle("Käsesosse");
 
-        when(recipeRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase("Käse")).thenReturn(List.of(recipe1, recipe3));
+        when(recipeRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase("Käse", "Käse")).thenReturn(List.of(recipe1, recipe3));
 
         List<RecipeEntity> result = recipeService.findByName("Käse");
 
@@ -77,7 +77,7 @@ public class RecipeServiceTest {
 
     @Test
     void findRecipesByNameReturnsEmptyListWhenNoRecipes() {
-        when(recipeRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase("Käse")).thenReturn(Collections.emptyList());
+        when(recipeRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase("Käse", "Käse")).thenReturn(Collections.emptyList());
 
         List<RecipeEntity> result = recipeService.findByName("Käse");
 

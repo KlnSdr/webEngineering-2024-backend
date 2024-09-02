@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
     Optional<RecipeEntity> findById(long id);
 
-    List<RecipeEntity> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String searchString);
+    List<RecipeEntity> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String title, String description);
 
     List<RecipeEntity> findByProductUrisIn(Collection<String> productUris);
 
