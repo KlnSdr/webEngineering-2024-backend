@@ -19,27 +19,31 @@ public class AutoInsert {
     }
 
     public void run() {
+        if (!recipeService.getAll().isEmpty()) {
+            return;
+        }
+
         final RecipeEntity recipeEntity = new RecipeEntity();
         recipeEntity.setDescription("Auto inserted recipe");
-        recipeEntity.setImageUri("https://example.com/image.jpg");
+        recipeEntity.setImageUri("https://upload.wikimedia.org/wikipedia/commons/e/ef/Pluto_in_True_Color_-_High-Res.jpg");
         recipeEntity.setPrivate(true);
         recipeEntity.setTitle("Hello World");
-        recipeEntity.setOwnerUri("https://example.com/owner");
-        recipeEntity.setLikedByUserUris(List.of("https://example.com/user", "https://example.com/user2", "https://example.com/user3"));
-        recipeEntity.setProductUris(List.of("https://example.com/product", "https://example.com/product2", "https://example.com/product3"));
-        recipeEntity.setProductQuantities(Map.of("https://example.com/product", 1, "https://example.com/product2", 2, "https://example.com/product3", 3));
+        recipeEntity.setOwnerUri("/users/id/1");
+        recipeEntity.setLikedByUserUris(List.of("/users/id/1", "/users/id/2", "/users/id/3"));
+        recipeEntity.setProductUris(List.of("/products/1", "/products/2", "/products/3"));
+        recipeEntity.setProductQuantities(Map.of("/products/1", 1, "/products/2", 2, "/products/3", 3));
 
         recipeService.save(recipeEntity);
 
         final RecipeEntity recipeEntity2 = new RecipeEntity();
         recipeEntity2.setDescription("Auto inserted recipe");
-        recipeEntity2.setImageUri("https://example.com/image.PNG");
+        recipeEntity2.setImageUri("https://upload.wikimedia.org/wikipedia/commons/e/ef/Pluto_in_True_Color_-_High-Res.jpg");
         recipeEntity2.setPrivate(false);
         recipeEntity2.setTitle("MOINSEN");
-        recipeEntity2.setOwnerUri("https://example.com/owner2");
-        recipeEntity2.setLikedByUserUris(List.of("https://example.com/user", "https://example.com/user3"));
-        recipeEntity2.setProductUris(List.of("https://example.com/product", "https://example.com/product2", "https://example.com/product3", "https://example.com/product4"));
-        recipeEntity2.setProductQuantities(Map.of("https://example.com/product", 1, "https://example.com/product2", 2, "https://example.com/product3", 3, "https://example.com/product4", 4));
+        recipeEntity2.setOwnerUri("/users/id/2");
+        recipeEntity2.setLikedByUserUris(List.of("/users/id/1", "/users/id/3"));
+        recipeEntity2.setProductUris(List.of("/products/1", "/products/2", "/products/3", "/products/4"));
+        recipeEntity2.setProductQuantities(Map.of("/products/1", 1, "/products/2", 2, "/products/3", 3, "/products/4", 4));
 
         recipeService.save(recipeEntity2);
 
