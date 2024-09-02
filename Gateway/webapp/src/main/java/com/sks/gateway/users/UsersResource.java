@@ -1,6 +1,7 @@
 package com.sks.gateway.users;
 
 import com.sks.gateway.common.MessageErrorHandler;
+import com.sks.gateway.util.UserHelper;
 import com.sks.users.api.UserDTO;
 import com.sks.users.api.UsersRequestMessage;
 import com.sks.users.api.UsersResponseMessage;
@@ -23,12 +24,14 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/users")
 public class UsersResource {
+    final UserHelper userHelper;
     final UsersSender sender;
     final MessageErrorHandler messageErrorHandler;
 
-    public UsersResource(UsersSender sender, MessageErrorHandler messageErrorHandler) {
+    public UsersResource(UsersSender sender, MessageErrorHandler messageErrorHandler, UserHelper userHelper) {
         this.sender = sender;
         this.messageErrorHandler = messageErrorHandler;
+        this.userHelper = userHelper;
     }
 
     @Operation(summary = "Get the current user")
@@ -39,8 +42,9 @@ public class UsersResource {
             @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping("/current")
-    public Principal getCurrentUser(Principal principal) {
-        return principal;
+    public UserInfoDTO getCurrentUser(Principal principal) {
+        final UserDTO user = userHelper.getCurrentInternalUser(principal);
+        return new UserInfoDTO(user, principal);
     }
 
     @Operation(summary = "Get user by ID")
