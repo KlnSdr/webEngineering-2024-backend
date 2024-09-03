@@ -18,9 +18,6 @@ public class SurveyEntity {
     @Column(name = "survey_title")
     private String title;
 
-    @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private Set<SurveyParticipants> participants = new HashSet<>();
-
     @Column(name = "owner_uri")
     private String ownerUri;
 
@@ -83,13 +80,5 @@ public class SurveyEntity {
 
     public void setCreationDate(Date creationDate) {
         this.creationDate = creationDate;
-    }
-
-    public Set<SurveyParticipants> getParticipants() {
-        return participants;
-    }
-
-    public void setParticipants(Set<SurveyParticipants> participants) {
-        this.participants = participants;
     }
 }

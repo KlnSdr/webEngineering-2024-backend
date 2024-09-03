@@ -1,7 +1,6 @@
 package com.sks.gateway.surveys.rest;
 
 import com.sks.gateway.common.MessageErrorHandler;
-import com.sks.gateway.surveys.dto.MySurveysDTO;
 import com.sks.gateway.util.UserHelper;
 import com.sks.surveys.api.*;
 import com.sks.users.api.UserDTO;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -39,7 +37,6 @@ public class SurveysResource {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Found the survey", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SurveyDTO.class))}),
             @ApiResponse(responseCode = "404", description = "Survey not found", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
             @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
@@ -64,23 +61,18 @@ public class SurveysResource {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Survey not found");
         }
 
-        List<String> participants = List.of(response.getSurveys()[0].getParticipants());
-        if (!participants.contains("/users/id/" + user.getUserId()) && !Objects.equals(response.getSurveys()[0].getCreator(), "/users/id/" + user.getUserId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-        }
-
         return response.getSurveys()[0];
     }
 
     @Operation(summary = "Get all surveys a user is either the creator of or participating in")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Found the surveys", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = MySurveysDTO.class)))}),
+            @ApiResponse(responseCode = "200", description = "Found the surveys", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = SurveyDTO.class)))}),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
             @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
     })
     @GetMapping("/my")
     @ResponseBody
-    public MySurveysDTO getSurveysByUserId(Principal principal) {
+    public SurveyDTO[] getSurveysByUserId(Principal principal) {
         final UserDTO user = userHelper.getCurrentInternalUser(principal);
 
         if (user == null) {
@@ -93,17 +85,7 @@ public class SurveysResource {
         if (response.didError()) {
             messageErrorHandler.handle(response);
         }
-
-
-        final SurveyResponseMessage responseParticipating = surveySender.sendRequest(SurveyRequestMessage.getParticipating("/users/id/" + user.getUserId()));
-        final SurveyDTO[] participatingSurveys = responseParticipating.getSurveys();
-
-        if (responseParticipating.didError()) {
-            messageErrorHandler.handle(responseParticipating);
-        }
-
-
-        return new MySurveysDTO(ownedSurveys, participatingSurveys);
+        return ownedSurveys;
     }
 
     @Operation(summary = "Create a new survey")
@@ -232,7 +214,6 @@ public class SurveysResource {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Vote successful", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SurveyDTO.class))}),
             @ApiResponse(responseCode = "404", description = "Survey not found", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
             @ApiResponse(responseCode = "500", description = "Failed to vote for recipe", content = @Content),
             @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
@@ -254,11 +235,6 @@ public class SurveysResource {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Survey not found");
         }
 
-        List<String> participants = List.of(responseGet.getSurveys()[0].getParticipants());
-        if (!participants.contains("/users/id/" + user.getUserId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-        }
-
         final SurveyResponseMessage response = surveySender.sendRequest(new SurveyRequestMessage("/recipes/" + recipeId, "/users/id/" + user.getUserId(), surveyId, SurveyRequestType.PUT_VoteSurvey));
 
         if (response.didError()) {
@@ -272,9 +248,6 @@ public class SurveysResource {
 
     private boolean isSurveyValid(SurveyDTO survey) {
         if (survey.getTitle().isEmpty()) {
-            return false;
-        }
-        if (survey.getParticipants() == null) {
             return false;
         }
         if (survey.getOptions() == null || survey.getOptions().isEmpty()) {

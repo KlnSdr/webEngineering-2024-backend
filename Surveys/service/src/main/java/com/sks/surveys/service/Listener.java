@@ -2,7 +2,6 @@ package com.sks.surveys.service;
 
 import com.sks.surveys.api.*;
 import com.sks.surveys.service.data.SurveyEntity;
-import com.sks.surveys.service.data.SurveyParticipants;
 import com.sks.surveys.service.data.SurveyService;
 import com.sks.surveys.service.data.SurveyVote;
 import org.springframework.amqp.core.Message;
@@ -33,7 +32,6 @@ public class Listener implements SurveyListener {
         final SurveyResponseMessage response = switch (request.getRequestType()) {
             case GET_SurveyById -> getSurveyById(request.getSurveyId());
             case GET_SurveyByOwner -> getSurveysByOwner(request.getOwnerUri());
-            case GET_SurveysByParticipant -> getSurveysByParticipant(request.getUserUri());
             case POST_SaveSurvey -> handleCreateSurvey(request.getSurvey());
             case DELETE_DeleteSurvey -> handleDeleteSurvey(request.getSurveyId());
             case PUT_UpdateSurvey -> handleUpdateSurvey(request.getSurvey());
@@ -64,25 +62,12 @@ public class Listener implements SurveyListener {
         return response;
     }
 
-    private SurveyResponseMessage getSurveysByParticipant(String participantUri) {
-        final SurveyResponseMessage response = new SurveyResponseMessage();
-        List<SurveyEntity> surveyEntities = service.getSurveysByParticipant(participantUri);
-        response.setSurveys(surveyEntities.stream().map(this::map).toArray(SurveyDTO[]::new));
-
-        return response;
-    }
-
     private SurveyResponseMessage handleCreateSurvey(SurveyDTO survey) {
         SurveyResponseMessage response = new SurveyResponseMessage();
         SurveyEntity entity = new SurveyEntity();
         entity.setTitle(survey.getTitle());
         entity.setOwnerUri(survey.getCreator());
         entity.setCreationDate(survey.getCreationDate());
-        Set<SurveyParticipants> participants = new HashSet<>();
-        for (String participant : survey.getParticipants()) {
-            participants.add(new SurveyParticipants(entity, participant));
-        }
-        entity.setParticipants(participants);
         entity.setVotes(new HashSet<>());
         entity.setOptions(survey.getOptions());
         try{
@@ -114,11 +99,6 @@ public class Listener implements SurveyListener {
             updatedEntity.setTitle(survey.getTitle());
             updatedEntity.setOwnerUri(survey.getCreator());
             updatedEntity.setCreationDate((entity.get().getCreationDate()));
-            Set<SurveyParticipants> participants = new HashSet<>();
-            for (String participant : survey.getParticipants()) {
-                participants.add(new SurveyParticipants(updatedEntity, participant));
-            }
-            updatedEntity.setParticipants(participants);
             updatedEntity.setVotes(new HashSet<>());
             updatedEntity.setOptions(survey.getOptions());
             try{
@@ -163,15 +143,11 @@ public class Listener implements SurveyListener {
         return response;
     }
     private SurveyDTO map(SurveyEntity entity) {
-
-        String[] participants = entity.getParticipants().stream()
-                .map(SurveyParticipants::getUserUri)
-                .toArray(String[]::new);
         Map<String, Integer> recipeVotes = new HashMap<>();
          for (SurveyVote vote : entity.getVotes()) {
             recipeVotes.put(vote.getRecipeUri(), recipeVotes.getOrDefault(vote.getRecipeUri(), 0) + 1);
          }
-         return new SurveyDTO(entity.getId(), entity.getTitle(), participants, entity.getOwnerUri(), recipeVotes, entity.getOptions(), entity.getCreationDate());
+         return new SurveyDTO(entity.getId(), entity.getTitle(), entity.getOwnerUri(), recipeVotes, entity.getOptions(), entity.getCreationDate());
     }
 
 }

@@ -8,11 +8,9 @@ import java.util.Optional;
 @Service
 public class SurveyService {
     private final SurveyRepository surveysRepository;
-    private final SurveyParticipantsRepository surveyParticipantsRepository;
 
-    public SurveyService(SurveyRepository surveysRepository, SurveyParticipantsRepository surveyParticipantsRepository) {
+    public SurveyService(SurveyRepository surveysRepository) {
         this.surveysRepository = surveysRepository;
-        this.surveyParticipantsRepository = surveyParticipantsRepository;
     }
 
     public Optional<SurveyEntity> getSurveyById(long surveyId) {
@@ -32,9 +30,5 @@ public class SurveyService {
     }
     public void delete(long surveyId) {
         surveysRepository.deleteById(surveyId);
-    }
-
-    public List<SurveyEntity> getSurveysByParticipant(String userUri) {
-        return surveyParticipantsRepository.findByUserUri(userUri).stream().map(SurveyParticipants::getSurvey).toList();
     }
 }

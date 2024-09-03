@@ -7,7 +7,6 @@ import java.util.Map;
 public class SurveyDTO {
     private long id;
     private String title;
-    private String[] participants;
     private String creator;
     private Map<String, Integer> recipeVote;
     private List<String> options;
@@ -21,10 +20,9 @@ public class SurveyDTO {
         this.title = title;
     }
 
-    public SurveyDTO(long id, String title, String[] participants, String creator, Map<String, Integer> RecipeVote,List<String> option, Date creationDate) {
+    public SurveyDTO(long id, String title, String creator, Map<String, Integer> RecipeVote,List<String> option, Date creationDate) {
         this.id = id;
         this.title = title;
-        this.participants = participants;
         this.creator = creator;
         this.recipeVote = RecipeVote;
         this.options = option;
@@ -48,14 +46,6 @@ public class SurveyDTO {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String[] getParticipants() {
-        return participants;
-    }
-
-    public void setParticipants(String[] participants) {
-        this.participants = participants;
     }
 
     public String getCreator() {
