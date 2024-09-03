@@ -1,8 +1,6 @@
 package com.sks.gateway.surveys.rest;
 
 import com.sks.gateway.common.MessageErrorHandler;
-import com.sks.gateway.util.AccessVerifier;
-import com.sks.gateway.surveys.dto.MySurveysDTO;
 import com.sks.gateway.util.UserHelper;
 import com.sks.surveys.api.SurveyDTO;
 import com.sks.surveys.api.SurveyRequestMessage;
@@ -54,7 +52,6 @@ public class SurveysResourceTest {
         SurveyDTO survey = new SurveyDTO();
         survey.setId(surveyId);
         survey.setTitle("Test Survey");
-        survey.setParticipants(new String[] {"/users/id/1", "/users/id/2"});
 
         when(userHelper.getCurrentInternalUser(null)).thenReturn(user);
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
@@ -94,7 +91,6 @@ public class SurveysResourceTest {
         user.setUserId(userId);
         SurveyDTO survey = new SurveyDTO();
         survey.setTitle("Bannenbrot");
-        survey.setParticipants(new String[] {"/users/id/42", "/users/id/43"});
         survey.setOptions(List.of("/recipes/1", "recepies/2"));
         survey.setCreator("/users/id/42");
         survey.setRecipeVote(null);
@@ -108,7 +104,6 @@ public class SurveysResourceTest {
 
         assertNotNull(result);
         assertEquals("Bannenbrot", result.getTitle());
-        assertEquals(2, result.getParticipants().length);
         assertEquals("/users/id/42", result.getCreator());
         assertEquals(2, result.getOptions().size());
     }
@@ -180,7 +175,6 @@ public class SurveysResourceTest {
         SurveyDTO survey = new SurveyDTO();
         survey.setId(surveyId);
         survey.setTitle("Bannenbrot");
-        survey.setParticipants(new String[] {"/users/42", "/users/43"});
         survey.setOptions(List.of("/recipes/1", "recepies/2"));
         survey.setCreator("/users/id/42");
         survey.setRecipeVote(null);
@@ -200,7 +194,6 @@ public class SurveysResourceTest {
         assertNotNull(result);
         assertEquals(surveyId, result.getId());
         assertEquals("Bannenbrot", result.getTitle());
-        assertEquals(2, result.getParticipants().length);
         assertEquals("/users/id/42", result.getCreator());
         assertEquals(2, result.getOptions().size());
     }
@@ -259,7 +252,6 @@ public class SurveysResourceTest {
         survey.setOptions(List.of("/recipes/1", "/recipes/2"));
         survey.setRecipeVote(new HashMap<>());
         survey.getRecipeVote().put("1", userId);
-        survey.setParticipants(new String[] {"/users/id/1", "/users/id/2"});
 
         when(userHelper.getCurrentInternalUser(null)).thenReturn(user);
         when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(response);
@@ -280,20 +272,16 @@ public class SurveysResourceTest {
         final UserDTO user = new UserDTO();
         user.setUserId(42L);
         SurveyResponseMessage responseOwned = mock(SurveyResponseMessage.class);
-        SurveyResponseMessage responseParticipating = mock(SurveyResponseMessage.class);
         SurveyDTO ownedSurvey = new SurveyDTO();
-        SurveyDTO participatingSurvey = new SurveyDTO();
 
         when(userHelper.getCurrentInternalUser(null)).thenReturn(user);
-        when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(responseOwned).thenReturn(responseParticipating);
+        when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(responseOwned);
         when(responseOwned.getSurveys()).thenReturn(new SurveyDTO[]{ownedSurvey});
-        when(responseParticipating.getSurveys()).thenReturn(new SurveyDTO[]{participatingSurvey});
 
-        MySurveysDTO result = controller.getSurveysByUserId(null);
+        SurveyDTO[] result = controller.getSurveysByUserId(null);
 
         assertNotNull(result);
-        assertEquals(1, result.owned().length);
-        assertEquals(1, result.participating().length);
+        assertEquals(1, result.length);
     }
 
     @Test
@@ -313,38 +301,14 @@ public class SurveysResourceTest {
         final UserDTO user = new UserDTO();
         user.setUserId(42L);
         SurveyResponseMessage responseOwned = mock(SurveyResponseMessage.class);
-        SurveyResponseMessage responseParticipating = mock(SurveyResponseMessage.class);
-        SurveyDTO participatingSurvey = new SurveyDTO();
 
         when(userHelper.getCurrentInternalUser(null)).thenReturn(user);
-        when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(responseOwned).thenReturn(responseParticipating);
+        when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(responseOwned);
         when(responseOwned.getSurveys()).thenReturn(new SurveyDTO[]{});
-        when(responseParticipating.getSurveys()).thenReturn(new SurveyDTO[]{participatingSurvey});
 
-        MySurveysDTO result = controller.getSurveysByUserId(null);
-
-        assertNotNull(result);
-        assertEquals(0, result.owned().length);
-        assertEquals(1, result.participating().length);
-    }
-
-    @Test
-    void getSurveysByUserIdNoParticipatingSurveys() {
-        final UserDTO user = new UserDTO();
-        user.setUserId(42L);
-        SurveyResponseMessage responseOwned = mock(SurveyResponseMessage.class);
-        SurveyResponseMessage responseParticipating = mock(SurveyResponseMessage.class);
-        SurveyDTO ownedSurvey = new SurveyDTO();
-
-        when(userHelper.getCurrentInternalUser(null)).thenReturn(user);
-        when(sender.sendRequest(any(SurveyRequestMessage.class))).thenReturn(responseOwned).thenReturn(responseParticipating);
-        when(responseOwned.getSurveys()).thenReturn(new SurveyDTO[]{ownedSurvey});
-        when(responseParticipating.getSurveys()).thenReturn(new SurveyDTO[]{});
-
-        MySurveysDTO result = controller.getSurveysByUserId(null);
+        SurveyDTO[] result = controller.getSurveysByUserId(null);
 
         assertNotNull(result);
-        assertEquals(1, result.owned().length);
-        assertEquals(0, result.participating().length);
+        assertEquals(0, result.length);
     }
 }

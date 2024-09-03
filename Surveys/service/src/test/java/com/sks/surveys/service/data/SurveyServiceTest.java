@@ -9,7 +9,6 @@ import org.mockito.MockitoAnnotations;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
@@ -19,9 +18,6 @@ public class SurveyServiceTest {
 
     @Mock
     private SurveyRepository surveyRepository;
-
-    @Mock
-    private SurveyParticipantsRepository surveyParticipantsRepository;
 
     @InjectMocks
     private SurveyService surveyService;
@@ -105,33 +101,5 @@ public class SurveyServiceTest {
         surveyService.delete(1L);
 
         verify(surveyRepository).deleteById(1L);
-    }
-    @Test
-    void getSurveysByParticipantReturnsListOfSurveys() {
-        SurveyEntity survey = new SurveyEntity();
-        SurveyParticipants participant = new SurveyParticipants();
-        participant.setSurvey(survey);
-        when(surveyParticipantsRepository.findByUserUri("/users/42")).thenReturn(Set.of(participant));
-
-        List<SurveyEntity> result = surveyService.getSurveysByParticipant("/users/42");
-
-        assertEquals(1, result.size());
-        assertEquals(survey, result.getFirst());
-    }
-
-    @Test
-    void getSurveysByParticipantReturnsEmptyListWhenNoSurveys() {
-        when(surveyParticipantsRepository.findByUserUri("/users/42")).thenReturn(Set.of());
-
-        List<SurveyEntity> result = surveyService.getSurveysByParticipant("/users/42");
-
-        assertEquals(0, result.size());
-    }
-
-    @Test
-    void getSurveysByParticipantHandlesNullUserUri() {
-        List<SurveyEntity> result = surveyService.getSurveysByParticipant(null);
-
-        assertEquals(0, result.size());
     }
 }
