@@ -1,5 +1,6 @@
 package com.sks.gateway.users;
 
+import com.sks.gateway.util.UserHelper;
 import com.sks.users.api.UserDTO;
 import com.sks.users.api.UsersRequestMessage;
 import com.sks.users.api.UsersResponseMessage;
@@ -23,6 +24,9 @@ public class UsersResourceTest {
     @Mock
     private UsersSender sender;
 
+    @Mock
+    private UserHelper userHelper;
+
     @InjectMocks
     private UsersResource usersResource;
 
@@ -33,19 +37,26 @@ public class UsersResourceTest {
 
     @Test
     void getCurrentUserReturnsPrincipalWhenPrincipalIsNotNull() {
+        final UserDTO user = new UserDTO();
+        when(userHelper.getCurrentInternalUser(any(Principal.class))).thenReturn(user);
+
         Principal principal = mock(Principal.class);
         when(principal.getName()).thenReturn("user");
 
-        Principal result = usersResource.getCurrentUser(principal);
+        UserInfoDTO result = usersResource.getCurrentUser(principal);
 
-        assertEquals(principal, result);
+        assertEquals(principal, result.principal());
+        assertEquals(user, result.internalUser());
     }
 
     @Test
     void getCurrentUserReturnsNullWhenPrincipalIsNull() {
-        Principal result = usersResource.getCurrentUser(null);
+        when(userHelper.getCurrentInternalUser(null)).thenReturn(null);
 
-        assertNull(result);
+        UserInfoDTO result = usersResource.getCurrentUser(null);
+
+        assertNull(result.principal());
+        assertNull(result.internalUser());
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.sks.gateway.users;
 
+import com.sks.gateway.util.UserHelper;
 import com.sks.users.api.UserDTO;
 import com.sks.users.api.UsersRequestMessage;
 import com.sks.users.api.UsersResponseMessage;
@@ -13,6 +14,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.security.Principal;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -30,6 +33,9 @@ public class UsersResourceRestTest {
     @MockBean
     private UsersSender sender;
 
+    @MockBean
+    private UserHelper userHelper;
+
     @BeforeEach
     public void setup() {
     }
@@ -37,10 +43,14 @@ public class UsersResourceRestTest {
     @Test
     @WithMockUser(username = "user")
     public void testGetCurrentUser_ReturnsPrincipalWhenNotNull() throws Exception {
+        final UserDTO user = new UserDTO();
+        user.setUserId(1L);
+        user.setUserName("John Doe");
+        when(userHelper.getCurrentInternalUser(any(Principal.class))).thenReturn(user);
         mockMvc.perform(get("/users/current")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json("{'authorities':[{'authority':'ROLE_USER'}],'details':null,'authenticated':true,'principal':{'password':'password','username':'user','authorities':[{'authority':'ROLE_USER'}],'accountNonExpired':true,'accountNonLocked':true,'credentialsNonExpired':true,'enabled':true},'credentials':'password','name':'user'}"));
+                .andExpect(content().json("{principal: {'authorities':[{'authority':'ROLE_USER'}],'details':null,'authenticated':true,'principal':{'password':'password','username':'user','authorities':[{'authority':'ROLE_USER'}],'accountNonExpired':true,'accountNonLocked':true,'credentialsNonExpired':true,'enabled':true},'credentials':'password','name':'user'},internalUser:  {userId:  1, userName:  'John Doe'}}"));
     }
 
     @Test
@@ -48,7 +58,7 @@ public class UsersResourceRestTest {
         mockMvc.perform(get("/users/current")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string(""));
+                .andExpect(content().json("{'principal':null,'internalUser':null}"));
     }
 
     @Test
