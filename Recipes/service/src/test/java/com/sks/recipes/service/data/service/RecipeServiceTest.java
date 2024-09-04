@@ -136,4 +136,24 @@ public class RecipeServiceTest {
 
 
     }
+
+    @Test
+    void findByOwnerReturnsListOfRecipes() {
+        RecipeEntity recipe = new RecipeEntity();
+        when(recipeRepository.findByOwnerUri("/users/42")).thenReturn(List.of(recipe));
+
+        List<RecipeEntity> result = recipeService.findByOwner("/users/42");
+
+        assertEquals(1, result.size());
+        assertEquals(recipe, result.getFirst());
+    }
+
+    @Test
+    void findByOwnerReturnsEmptyListWhenNoRecipes() {
+        when(recipeRepository.findByOwnerUri("/users/42")).thenReturn(Collections.emptyList());
+
+        List<RecipeEntity> result = recipeService.findByOwner("/users/42");
+
+        assertEquals(0, result.size());
+    }
 }

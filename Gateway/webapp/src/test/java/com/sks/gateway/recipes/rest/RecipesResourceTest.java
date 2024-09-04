@@ -249,4 +249,43 @@ public class RecipesResourceTest {
 
         assertEquals("Internal Server Error", exception.getReason());
     }
+
+    @Test
+    void getRecipesByUserReturnsRecipesWhenFound() {
+        long userId = 1L;
+        RecipeDTO recipe = new RecipeDTO();
+        RecipeResponseMessage response = new RecipeResponseMessage();
+        response.setRecipes(List.of(recipe));
+        when(recipeSender.sendRequest(any())).thenReturn(response);
+
+        List<RecipeDTO> result = controller.getRecipesByUser(userId);
+
+        assertEquals(1, result.size());
+        assertEquals(recipe, result.getFirst());
+    }
+
+    @Test
+    void getRecipesByUserReturnsEmptyListWhenNoRecipesFound() {
+        long userId = 1L;
+        RecipeResponseMessage response = new RecipeResponseMessage();
+        response.setRecipes(List.of());
+        when(recipeSender.sendRequest(any())).thenReturn(response);
+
+        List<RecipeDTO> result = controller.getRecipesByUser(userId);
+
+        assertEquals(0, result.size());
+    }
+
+    @Test
+    void getRecipesByUserThrowsInternalServerErrorWhenMessageSendFails() {
+        long userId = 1L;
+        RecipeResponseMessage response = new RecipeResponseMessage();
+        response.setDidError(true);
+        when(recipeSender.sendRequest(any())).thenReturn(response);
+        doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(messageErrorHandler).handle(response);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> controller.getRecipesByUser(userId));
+
+        assertEquals("Internal Server Error", exception.getReason());
+    }
 }

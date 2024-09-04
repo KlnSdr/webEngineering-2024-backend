@@ -155,6 +155,24 @@ public class RecipesResourceRestTest {
         mockMvc.perform(delete("/recipes/1").accept(MediaType.APPLICATION_JSON)).andExpect(status().isInternalServerError());
     }
 
+    @Test
+    public void testGetRecipeByOwner_Success() throws Exception {
+        final Date date = new Date();
+        RecipeDTO recipe = new RecipeDTO(1, "Pancakes", "Mix and cook", "/images/42", date, "/users/id/1");
+        RecipeResponseMessage responseMessage = new RecipeResponseMessage(Collections.singletonList(recipe));
+        when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
+
+        mockMvc.perform(get("/recipes/user/1").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(content().json("[{'id':1,'title':'Pancakes','imgUri': '/images/42','description':'Mix and cook','ownerUri':'/users/id/1','likedByUserUris':  null,'productUris':  null, 'productQuantities':  null,'private': false,'creationDate': '" + toIsoString(date) + "'}]"));
+    }
+
+    @Test
+    public void testGetRecipeByOwner_NothingFound() throws Exception {
+        RecipeResponseMessage responseMessage = new RecipeResponseMessage(Collections.emptyList());
+        when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
+
+        mockMvc.perform(get("/recipes/user/1").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(content().json("[]"));
+    }
+
     private String toIsoString(Date date) {
         ZonedDateTime zonedDateTime = date.toInstant().atZone(ZoneId.of("GMT"));
         return DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSxxx").format(zonedDateTime);

@@ -1,6 +1,7 @@
 package com.sks.recipes.service.data.service;
 
 import com.sks.recipes.api.RecipeRequestMessage;
+import com.sks.recipes.api.RecipeRequestType;
 import com.sks.recipes.api.RecipeSender;
 import com.sks.recipes.api.dto.RecipeDTO;
 import com.sks.recipes.service.Listener;
@@ -85,6 +86,40 @@ class ListenerTest {
         }));
 
 
+    }
+
+    @Test
+    void testListenerByOwnerUri() {
+        final RecipeRequestMessage message = new RecipeRequestMessage();
+        message.setOwnerId(42L);
+        message.setRequestType(RecipeRequestType.GET_BY_OWNER_ID);
+
+        RecipeEntity entity = new RecipeEntity ( 1L, "Tomatensoße","description", "imageUri", false, new Timestamp(0L), "ownerUri", Collections.singletonList("0"), Collections.singletonList("Tomaten"), Map.of("Tomaten",3));
+        when(service.findByOwner("/users/id/42")).thenReturn(List.of(entity));
+
+        listener.listen(message);
+
+        List<RecipeDTO> expected = List.of(new RecipeDTO( 1L, "Tomatensoße","description", "imageUri", false, new Timestamp(0L), "ownerUri", Collections.singletonList("0"), Collections.singletonList("Tomaten"), Map.of("Tomaten",3)));
+        verify(sender).sendResponse(eq(message), argThat(response -> {
+            List<RecipeDTO> payload = response.getRecipes();
+            return payload.size() == 1 && equals(expected, payload);
+        }));
+    }
+
+    @Test
+    void testListenerByOwnerUri_NothingFound() {
+        final RecipeRequestMessage message = new RecipeRequestMessage();
+        message.setOwnerId(42L);
+        message.setRequestType(RecipeRequestType.GET_BY_OWNER_ID);
+
+        when(service.findByOwner("/users/id/42")).thenReturn(List.of());
+
+        listener.listen(message);
+
+        verify(sender).sendResponse(eq(message), argThat(response -> {
+            List<RecipeDTO> payload = response.getRecipes();
+            return payload.isEmpty();
+        }));
     }
 
         private boolean equals(List<RecipeDTO> expected, List<RecipeDTO> payload) {

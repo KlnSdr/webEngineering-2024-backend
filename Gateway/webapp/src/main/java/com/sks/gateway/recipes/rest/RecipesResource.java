@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/recipes")
@@ -67,6 +68,21 @@ public class RecipesResource {
         }
 
         return response.getRecipes().getFirst();
+    }
+
+    @Operation(summary = "Get recipes by user ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found the recipes", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = RecipeDTO.class)))}),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
+    })
+    @GetMapping("/user/{userId}")
+    @ResponseBody
+    public List<RecipeDTO> getRecipesByUser(@PathVariable("userId") long userId) {
+        final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getByOwnerId(userId));
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+        return response.getRecipes();
     }
 
     @Operation(summary = "Get multiple recipes by IDs")

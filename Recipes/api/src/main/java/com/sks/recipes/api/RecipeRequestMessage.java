@@ -10,6 +10,7 @@ public class RecipeRequestMessage extends BaseMessage {
     private RecipeRequestType requestType;
     private long[] ids;
     private CreateRecipeDTO recipe;
+    private long ownerId;
 
     public RecipeRequestMessage() {
     }
@@ -52,6 +53,13 @@ public class RecipeRequestMessage extends BaseMessage {
         return message;
     }
 
+    public static RecipeRequestMessage getByOwnerId(long ownerId) {
+        final RecipeRequestMessage message = new RecipeRequestMessage();
+        message.ownerId = ownerId;
+        message.requestType = RecipeRequestType.GET_BY_OWNER_ID;
+        return message;
+    }
+
     public String getMessage() {
         return message;
     }
@@ -90,5 +98,13 @@ public class RecipeRequestMessage extends BaseMessage {
 
     public void setRecipe(CreateRecipeDTO recipe) {
         this.recipe = recipe;
+    }
+
+    public long getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(long ownerId) {
+        this.ownerId = ownerId;
     }
 }

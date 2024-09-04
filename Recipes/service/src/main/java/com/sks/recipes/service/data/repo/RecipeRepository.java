@@ -11,6 +11,8 @@ import java.util.Optional;
 public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
     Optional<RecipeEntity> findById(long id);
 
+    List<RecipeEntity> findByOwnerUri(String ownerUri);
+
     List<RecipeEntity> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String title, String description);
 
     // thanks to dr. faustus for this query
