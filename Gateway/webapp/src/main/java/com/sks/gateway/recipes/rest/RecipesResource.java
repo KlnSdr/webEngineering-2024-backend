@@ -141,7 +141,7 @@ public class RecipesResource {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
         }
 
-        recipe.setOwnerUri("/users/" + user.getUserId());
+        recipe.setOwnerUri("/users/id/" + user.getUserId());
 
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.update(recipe));
 
