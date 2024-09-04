@@ -23,6 +23,10 @@ public class RecipeService {
         return recipeRepository.findById(id);
     }
 
+    public List<RecipeEntity> findByOwner(String ownerUri) {
+        return recipeRepository.findByOwnerUri(ownerUri);
+    }
+
     public boolean deleteById(long id) {
         recipeRepository.deleteById(id);
 

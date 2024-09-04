@@ -31,6 +31,7 @@ public class Listener implements RecipesListener {
         try {
             response = switch (message.getRequestType()) {
                 case GET_BY_ID -> getById(message.getIds());
+                case GET_BY_OWNER_ID -> getByOwnerId(message.getOwnerId());
                 case UPDATE -> update(message.getRecipe());
                 case DELETE -> delete(message.getIds());
                 case SEARCH_BY_NAME -> getByName(message.getMessage());
@@ -47,6 +48,14 @@ public class Listener implements RecipesListener {
         response.setDidError(true);
         response.setErrorMessage("Error while processing message");
         response.setException(e);
+        return response;
+    }
+
+    private RecipeResponseMessage getByOwnerId(long ownerId) {
+        final List<RecipeDTO> recipes = service.findByOwner("/users/id/" + ownerId).stream().map(this::map).toList();
+
+        final RecipeResponseMessage response = new RecipeResponseMessage();
+        response.setRecipes(recipes);
         return response;
     }
 

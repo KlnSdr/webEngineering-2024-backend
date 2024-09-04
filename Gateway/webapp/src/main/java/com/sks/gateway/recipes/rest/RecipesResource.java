@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/recipes")
@@ -67,6 +68,16 @@ public class RecipesResource {
         }
 
         return response.getRecipes().getFirst();
+    }
+
+    @GetMapping("/user/{userId}")
+    @ResponseBody
+    public List<RecipeDTO> getRecipesByUser(@PathVariable("userId") long userId) {
+        final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getByOwnerId(userId));
+        if (response.didError()) {
+            messageErrorHandler.handle(response);
+        }
+        return response.getRecipes();
     }
 
     @Operation(summary = "Get multiple recipes by IDs")
