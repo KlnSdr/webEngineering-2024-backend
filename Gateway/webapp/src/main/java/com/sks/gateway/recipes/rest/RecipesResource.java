@@ -70,6 +70,11 @@ public class RecipesResource {
         return response.getRecipes().getFirst();
     }
 
+    @Operation(summary = "Get recipes by user ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found the recipes", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = RecipeDTO.class)))}),
+            @ApiResponse(responseCode = "500", description = "Failed to send/receive message to/from service", content = @Content)
+    })
     @GetMapping("/user/{userId}")
     @ResponseBody
     public List<RecipeDTO> getRecipesByUser(@PathVariable("userId") long userId) {
