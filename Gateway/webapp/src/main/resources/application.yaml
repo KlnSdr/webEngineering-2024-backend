@@ -1,19 +1,36 @@
-spring.application.name=gateway
-server.port=13000
-app.oauth2.successRedirectUrl=http://localhost:3000
-app.oauth2.failRedirectUrl=/loging?error=true
-app.frontend.url=http://localhost:3000
+spring:
+  application:
+    name: gateway
+  security:
+    oauth2:
+      client:
+        registration:
+          gitlab:
+            client-id: 7677e6438e6bec90cac27577d9a3c8928ec79b4d101fc6ee9e86f22d20cc7a88
+            client-secret: gloas-36c3c720c9025afca1dc3e6423ec9fd09a0de3d206bb80385764a29c111229a3
+            redirect-uri: http://localhost:13000/login/oauth2/code/gitlab
+            authorization-grant-type: authorization_code
+            scope: read_user
+        provider:
+          gitlab:
+            authorization-uri: https://git.imn.htwk-leipzig.de/oauth/authorize
+            token-uri: https://git.imn.htwk-leipzig.de/oauth/token
+            user-info-uri: https://git.imn.htwk-leipzig.de/api/v4/user
+            user-name-attribute: id
+server:
+  port: 13000
+app:
+  oauth2:
+    successRedirectUrl: http://localhost:3000
+    failRedirectUrl: /loging?error=true
+  frontend:
+    url: http://localhost:3000
+  auth:
+    restrictedRoutes: /, /users
 
-springdoc.api-docs.path=/v1/api-docs
-springdoc.swagger-ui.path=/v1/api-docs/swagger-ui.html
-springdoc.swagger-ui.operationsSorter=method
-
-spring.security.oauth2.client.registration.gitlab.client-id=7677e6438e6bec90cac27577d9a3c8928ec79b4d101fc6ee9e86f22d20cc7a88
-spring.security.oauth2.client.registration.gitlab.client-secret=gloas-36c3c720c9025afca1dc3e6423ec9fd09a0de3d206bb80385764a29c111229a3
-spring.security.oauth2.client.registration.gitlab.redirect-uri= http://localhost:13000/login/oauth2/code/gitlab
-spring.security.oauth2.client.registration.gitlab.authorization-grant-type=authorization_code
-spring.security.oauth2.client.registration.gitlab.scope=read_user
-spring.security.oauth2.client.provider.gitlab.authorization-uri=https://git.imn.htwk-leipzig.de/oauth/authorize
-spring.security.oauth2.client.provider.gitlab.token-uri=https://git.imn.htwk-leipzig.de/oauth/token
-spring.security.oauth2.client.provider.gitlab.user-info-uri=https://git.imn.htwk-leipzig.de/api/v4/user
-spring.security.oauth2.client.provider.gitlab.user-name-attribute=id
+springdoc:
+  api-docs:
+    path: /v1/api-docs
+  swagger-ui:
+    path: /v1/api-docs/swagger-ui.html
+    operationsSorter: method
