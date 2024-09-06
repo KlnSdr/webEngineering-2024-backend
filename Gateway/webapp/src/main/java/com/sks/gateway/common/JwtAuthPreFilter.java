@@ -4,7 +4,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,30 +15,22 @@ import java.io.IOException;
 
 @Component
 public class JwtAuthPreFilter extends OncePerRequestFilter {
-    @Value("${app.auth.restrictedRoutes}")
-    private String[] blacklist;
-
     private final JwtUtil jwtUtil;
     private final CustomeUserDetailsService userDetailsService;
+    private final RequestRouteMatcher requestRouteMatcher;
 
-    public JwtAuthPreFilter(JwtUtil jwtUtil, CustomeUserDetailsService userDetailsService) {
+    public JwtAuthPreFilter(JwtUtil jwtUtil, CustomeUserDetailsService userDetailsService, RestrictedRoutesConfig restrictedRoutesConfig) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.requestRouteMatcher = restrictedRoutesConfig.getRestrictedRoutes();
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         final String path = request.getRequestURI();
-        boolean shouldFilter = false;
+        final String method = request.getMethod();
 
-        for (String route : blacklist) {
-            if (path.startsWith(route)) {
-                shouldFilter = true;
-                break;
-            }
-        }
-
-        if (!shouldFilter) {
+        if (!requestRouteMatcher.isRestrictedRoute(path, method)) {
             filterChain.doFilter(request, response);
             return;
         }
