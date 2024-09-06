@@ -1,6 +1,5 @@
 package com.sks.gateway;
 
-import com.sks.gateway.common.CustomeUserDetailsService;
 import com.sks.gateway.common.JwtAuthPreFilter;
 import com.sks.gateway.users.OAuthHandler;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,12 +30,10 @@ public class GatewayConfig implements WebMvcConfigurer {
     private String frontendUrl;
 
     private final OAuthHandler oAuthHandler;
-    private final CustomeUserDetailsService userDetailsService;
     private final JwtAuthPreFilter jwtAuthPreFilter;
 
-    public GatewayConfig(OAuthHandler oAuthHandler, CustomeUserDetailsService userDetailsService, JwtAuthPreFilter jwtAuthPreFilter) {
+    public GatewayConfig(OAuthHandler oAuthHandler, JwtAuthPreFilter jwtAuthPreFilter) {
         this.oAuthHandler = oAuthHandler;
-        this.userDetailsService = userDetailsService;
         this.jwtAuthPreFilter = jwtAuthPreFilter;
     }
 
@@ -46,7 +43,6 @@ public class GatewayConfig implements WebMvcConfigurer {
                 .authorizeHttpRequests(authorize -> authorize
                         .anyRequest().permitAll()
                 )
-                .userDetailsService(userDetailsService)
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuthHandler)
                         .failureUrl(oauthFailureRedirectUrl)

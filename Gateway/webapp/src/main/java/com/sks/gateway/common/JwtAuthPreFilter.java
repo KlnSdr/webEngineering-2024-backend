@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -16,12 +17,10 @@ import java.io.IOException;
 @Component
 public class JwtAuthPreFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
-    private final CustomeUserDetailsService userDetailsService;
     private final RequestRouteMatcher requestRouteMatcher;
 
-    public JwtAuthPreFilter(JwtUtil jwtUtil, CustomeUserDetailsService userDetailsService, RestrictedRoutesConfig restrictedRoutesConfig) {
+    public JwtAuthPreFilter(JwtUtil jwtUtil, RestrictedRoutesConfig restrictedRoutesConfig) {
         this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
         this.requestRouteMatcher = restrictedRoutesConfig.getRestrictedRoutes();
     }
 
@@ -60,9 +59,12 @@ public class JwtAuthPreFilter extends OncePerRequestFilter {
             return;
         }
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        final UserDetails userDetails = User.builder()
+                .username(username)
+                .password("")
+                .build();
 
-        if (userDetails == null || !jwtUtil.validateToken(token, userDetails)) {
+        if (!jwtUtil.validateToken(token, userDetails)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized");
             return;
