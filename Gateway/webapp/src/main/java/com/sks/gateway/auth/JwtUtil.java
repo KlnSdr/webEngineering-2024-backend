@@ -16,7 +16,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
     private final String SECRET = "secret";
-    private final long jwtTokenValidity = 5 * 60 * 60 * 1000;
+    long jwtTokenValidity = 5 * 60 * 60 * 1000;
 
     public String generateToken(OAuth2User oAuth2User, UserDTO internalUser) {
         return JWT.create()
