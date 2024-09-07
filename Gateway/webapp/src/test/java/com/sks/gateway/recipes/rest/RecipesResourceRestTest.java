@@ -1,11 +1,14 @@
 package com.sks.gateway.recipes.rest;
 
+import com.sks.gateway.auth.JwtUtil;
 import com.sks.gateway.util.UserHelper;
 import com.sks.recipes.api.RecipeRequestMessage;
 import com.sks.recipes.api.RecipeResponseMessage;
 import com.sks.recipes.api.RecipeSender;
 import com.sks.recipes.api.dto.RecipeDTO;
 import com.sks.users.api.UserDTO;
+import com.sks.users.api.UsersResponseMessage;
+import com.sks.users.api.UsersSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +16,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -20,9 +26,7 @@ import java.security.Principal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -37,15 +41,47 @@ public class RecipesResourceRestTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private final OAuth2User mockPrincipal = new OAuth2User() {
+        @Override
+        public Map<String, Object> getAttributes() {
+            return Map.of("sub", "user");
+        }
+
+        @Override
+        public Collection<? extends GrantedAuthority> getAuthorities() {
+            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        }
+
+        @Override
+        public String getName() {
+            return "user";
+        }
+    };
+
     @MockBean
     private RecipeSender recipeSender;
 
     @MockBean
     private UserHelper userHelper;
 
+    @MockBean
+    private UsersSender usersSender;
+
+    private String token;
+    private UserDTO user;
+
     @BeforeEach
     public void setup() {
-        // Setup common mock behavior if needed
+        final JwtUtil jwtUtil = new JwtUtil();
+
+        user = new UserDTO();
+        user.setUserId(1L);
+        user.setUserName("user");
+
+        UsersResponseMessage usersResponseMessage = new UsersResponseMessage();
+        usersResponseMessage.setKnownToken(true);
+        when(usersSender.sendRequest(any())).thenReturn(usersResponseMessage);
+        token = jwtUtil.generateToken(mockPrincipal, user);
     }
 
     @Test
@@ -83,9 +119,7 @@ public class RecipesResourceRestTest {
     @WithMockUser(username = "user")
     public void testCreateRecipe_Success() throws Exception {
         final Date date = new Date();
-        UserDTO user = new UserDTO();
-        user.setUserId(1L);
-        user.setUserName("user");
+
         RecipeDTO recipe = new RecipeDTO(1, "Pancakes", "Mix and cook", "/images/42", date, "/users/id/1");
         RecipeResponseMessage responseMessage = new RecipeResponseMessage();
         responseMessage.setRecipe(recipe);
@@ -93,23 +127,26 @@ public class RecipesResourceRestTest {
         when(userHelper.getCurrentInternalUser(any(Principal.class))).thenReturn(user);
         when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
 
-        mockMvc.perform(post("/recipes").contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"Pancakes\",\"instructions\":\"Mix and cook\"}").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(content().json("{'id':1,'title':'Pancakes','imgUri': '/images/42','description':'Mix and cook','ownerUri':'/users/id/1','likedByUserUris':  null,'productUris':  null, 'productQuantities':  null,'private': false,'creationDate': '" + toIsoString(date) + "'}"));
+        mockMvc.perform(post("/recipes")
+                        .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Pancakes\",\"instructions\":\"Mix and cook\"}")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{'id':1,'title':'Pancakes','imgUri': '/images/42','description':'Mix and cook','ownerUri':'/users/id/1','likedByUserUris':  null,'productUris':  null, 'productQuantities':  null,'private': false,'creationDate': '" + toIsoString(date) + "'}"));
     }
 
     @Test
     public void testCreateRecipe_Unauthorized() throws Exception {
         when(userHelper.getCurrentInternalUser(any(Principal.class))).thenReturn(null);
 
-        mockMvc.perform(post("/recipes").contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"Pancakes\",\"instructions\":\"Mix and cook\"}").accept(MediaType.APPLICATION_JSON)).andExpect(status().is3xxRedirection());
+        mockMvc.perform(post("/recipes").contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"Pancakes\",\"instructions\":\"Mix and cook\"}").accept(MediaType.APPLICATION_JSON)).andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser(username = "user")
     public void testUpdateRecipe_Success() throws Exception {
         final Date date = new Date();
-        UserDTO user = new UserDTO();
-        user.setUserId(1L);
-        user.setUserName("user");
         RecipeDTO recipe = new RecipeDTO(1, "Updated Pancakes", "Mix and cook well", "/images/42", date, "/users/id/1");
         RecipeResponseMessage responseMessage = new RecipeResponseMessage();
         responseMessage.setRecipe(recipe);
@@ -117,20 +154,32 @@ public class RecipesResourceRestTest {
         when(userHelper.getCurrentInternalUser(any(Principal.class))).thenReturn(user);
         when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
 
-        mockMvc.perform(put("/recipes/1").contentType(MediaType.APPLICATION_JSON).content("{\"id\":1,\"name\":\"Updated Pancakes\",\"instructions\":\"Mix and cook well\"}").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(content().json("{'id':1,'title':'Updated Pancakes','imgUri': '/images/42','description':'Mix and cook well','ownerUri':'/users/id/1','likedByUserUris':  null,'productUris':  null, 'productQuantities':  null,'private': false,'creationDate': '" + toIsoString(date) + "'}"));
+        mockMvc.perform(put("/recipes/1")
+                        .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"id\":1,\"name\":\"Updated Pancakes\",\"instructions\":\"Mix and cook well\"}")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content()
+                        .json("{'id':1,'title':'Updated Pancakes','imgUri': '/images/42','description':'Mix and cook well','ownerUri':'/users/id/1','likedByUserUris':  null,'productUris':  null, 'productQuantities':  null,'private': false,'creationDate': '" + toIsoString(date) + "'}"));
     }
 
     @Test
     @WithMockUser(username = "user")
     public void testUpdateRecipe_IdMismatch() throws Exception {
-        mockMvc.perform(put("/recipes/1").contentType(MediaType.APPLICATION_JSON).content("{\"id\":2,\"name\":\"Updated Pancakes\",\"instructions\":\"Mix and cook well\"}").accept(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
+        mockMvc.perform(put("/recipes/1")
+                        .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"id\":2,\"name\":\"Updated Pancakes\",\"instructions\":\"Mix and cook well\"}")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     public void testUpdateRecipe_Unauthorized() throws Exception {
         when(userHelper.getCurrentInternalUser(any(Principal.class))).thenReturn(null);
 
-        mockMvc.perform(put("/recipes/1").contentType(MediaType.APPLICATION_JSON).content("{\"id\":1,\"name\":\"Updated Pancakes\",\"instructions\":\"Mix and cook well\"}").accept(MediaType.APPLICATION_JSON)).andExpect(status().is3xxRedirection());
+        mockMvc.perform(put("/recipes/1").contentType(MediaType.APPLICATION_JSON).content("{\"id\":1,\"name\":\"Updated Pancakes\",\"instructions\":\"Mix and cook well\"}").accept(MediaType.APPLICATION_JSON)).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -141,7 +190,10 @@ public class RecipesResourceRestTest {
 
         when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
 
-        mockMvc.perform(delete("/recipes/1").accept(MediaType.APPLICATION_JSON)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/recipes/1")
+                        .header("Authorization", "Bearer " + token)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -152,7 +204,9 @@ public class RecipesResourceRestTest {
 
         when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
 
-        mockMvc.perform(delete("/recipes/1").accept(MediaType.APPLICATION_JSON)).andExpect(status().isInternalServerError());
+        mockMvc.perform(delete("/recipes/1")
+                        .header("Authorization", "Bearer " + token)
+                .accept(MediaType.APPLICATION_JSON)).andExpect(status().isInternalServerError());
     }
 
     @Test
