@@ -79,6 +79,7 @@ public class Listener implements UsersListener {
         final String token = message.getToken();
         final TokenEntity tokenEntity = new TokenEntity();
         tokenEntity.setToken(token);
+        tokenEntity.setValidTill(message.getValidTill());
         tokenService.save(tokenEntity);
 
         return new UsersResponseMessage();

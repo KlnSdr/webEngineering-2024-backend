@@ -48,8 +48,9 @@ public class OAuthHandler implements AuthenticationSuccessHandler {
             final UserDTO internalUser = userResponse.getUser();
 
             final String token = jwtUtil.generateToken(oAuth2User, internalUser);
+            final Date validTill = jwtUtil.extractExpiration(token);
 
-            final UsersResponseMessage tokenResponse = usersSender.sendRequest(UsersRequestMessage.storeToken(token, new Date()));
+            final UsersResponseMessage tokenResponse = usersSender.sendRequest(UsersRequestMessage.storeToken(token, validTill));
 
             if (tokenResponse.didError()) {
                 messageErrorHandler.handle(tokenResponse);
