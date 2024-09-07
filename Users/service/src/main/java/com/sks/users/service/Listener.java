@@ -1,6 +1,8 @@
 package com.sks.users.service;
 
 import com.sks.users.api.*;
+import com.sks.users.service.data.TokenEntity;
+import com.sks.users.service.data.TokenService;
 import com.sks.users.service.data.UsersEntity;
 import com.sks.users.service.data.UsersService;
 import org.springframework.stereotype.Component;
@@ -10,11 +12,13 @@ import java.util.Optional;
 @Component
 public class Listener implements UsersListener {
     private final UsersService service;
+    private final TokenService tokenService;
     private final UsersSender sender;
 
-    public Listener(UsersSender sender, UsersService service) {
+    public Listener(UsersSender sender, UsersService service, TokenService tokenService) {
         this.sender = sender;
         this.service = service;
+        this.tokenService = tokenService;
     }
 
     @Override
@@ -25,6 +29,8 @@ public class Listener implements UsersListener {
                 case GET_BY_ID -> handleGetById(message);
                 case GET_BY_IDP -> handleGetByIdp(message);
                 case CREATE -> handleCreate(message);
+                case STORE_TOKEN -> handleStoreToken(message);
+                case IS_KNOWN_TOKEN -> handleIsKnownToken(message);
             };
         } catch (Exception e) {
             response = buildErrorResponse(e);
@@ -66,6 +72,23 @@ public class Listener implements UsersListener {
             final UsersEntity savedUser = service.save(newUser);
             response.setUser(map(savedUser));
         }
+        return response;
+    }
+
+    private UsersResponseMessage handleStoreToken(UsersRequestMessage message) {
+        final String token = message.getToken();
+        final TokenEntity tokenEntity = new TokenEntity();
+        tokenEntity.setToken(token);
+        tokenEntity.setValidTill(message.getValidTill());
+        tokenService.save(tokenEntity);
+
+        return new UsersResponseMessage();
+    }
+
+    private UsersResponseMessage handleIsKnownToken(UsersRequestMessage message) {
+        final boolean isKnown = tokenService.isKnownToken(message.getToken());
+        final UsersResponseMessage response = new UsersResponseMessage();
+        response.setKnownToken(isKnown);
         return response;
     }
 
