@@ -25,6 +25,10 @@ app:
     failRedirectUrl: /loging?error=true
   frontend:
     url: http://localhost:3000
+  auth:
+    jwt:
+      secret: f9db405e92044a75add38205140b66cf61c3c49c31ea47dcbd91820c69e95cdb
+      expiration: 10800000 # 3 hours
 
 springdoc:
   api-docs:

@@ -73,14 +73,15 @@ public class FridgesResourceRestTest {
     @MockBean
     private UsersSender usersSender;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     private String token;
     private UserDTO user;
 
     @BeforeEach
     public void setup() {
         when(accessVerifier.verifyAccessesSelf(any(Long.class), any(Principal.class))).thenReturn(true);
-
-        final JwtUtil jwtUtil = new JwtUtil();
 
         user = new UserDTO();
         user.setUserId(1L);

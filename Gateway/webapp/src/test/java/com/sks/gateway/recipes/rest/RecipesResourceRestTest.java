@@ -67,13 +67,14 @@ public class RecipesResourceRestTest {
     @MockBean
     private UsersSender usersSender;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     private String token;
     private UserDTO user;
 
     @BeforeEach
     public void setup() {
-        final JwtUtil jwtUtil = new JwtUtil();
-
         user = new UserDTO();
         user.setUserId(1L);
         user.setUserName("user");
