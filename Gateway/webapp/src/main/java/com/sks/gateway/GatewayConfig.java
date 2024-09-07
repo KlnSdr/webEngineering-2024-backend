@@ -1,6 +1,6 @@
 package com.sks.gateway;
 
-import com.sks.gateway.common.JwtAuthPreFilter;
+import com.sks.gateway.auth.JwtAuthPreFilter;
 import com.sks.gateway.users.OAuthHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

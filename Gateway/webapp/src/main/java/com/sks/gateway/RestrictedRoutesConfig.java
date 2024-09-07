@@ -1,5 +1,6 @@
-package com.sks.gateway.common;
+package com.sks.gateway;
 
+import com.sks.gateway.auth.RequestRouteMatcher;
 import org.springframework.stereotype.Component;
 
 @Component

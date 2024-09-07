@@ -1,5 +1,6 @@
-package com.sks.gateway.common;
+package com.sks.gateway.auth;
 
+import com.sks.gateway.RestrictedRoutesConfig;
 import com.sks.users.api.UsersRequestMessage;
 import com.sks.users.api.UsersResponseMessage;
 import com.sks.users.api.UsersSender;

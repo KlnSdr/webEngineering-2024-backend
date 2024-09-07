@@ -1,6 +1,6 @@
 package com.sks.gateway.users;
 
-import com.sks.gateway.common.JwtUtil;
+import com.sks.gateway.auth.JwtUtil;
 import com.sks.gateway.common.MessageErrorHandler;
 import com.sks.users.api.UserDTO;
 import com.sks.users.api.UsersRequestMessage;
