@@ -4,6 +4,7 @@ import com.sks.users.api.UserDTO;
 import com.sks.users.api.UsersRequestMessage;
 import com.sks.users.api.UsersRequestType;
 import com.sks.users.api.UsersSender;
+import com.sks.users.service.data.TokenEntity;
 import com.sks.users.service.data.TokenService;
 import com.sks.users.service.data.UsersEntity;
 import com.sks.users.service.data.UsersService;
@@ -132,4 +133,39 @@ public class ListenerTest {
         }));
     }
 
+    @Test
+    void storesTokenAndSendsSuccessResponseWhenStoreTokenRequest() {
+        UsersRequestMessage message = mock(UsersRequestMessage.class);
+        when(message.getRequestType()).thenReturn(UsersRequestType.STORE_TOKEN);
+        when(message.getToken()).thenReturn("token");
+        when(tokenService.save(any())).thenReturn(new TokenEntity());
+
+        listener.listen(message);
+
+        verify(usersSender).sendResponse(eq(message), argThat(response -> !response.didError()));
+    }
+
+    @Test
+    void isKnownTokenReturnsTrueForExistingToken() {
+        UsersRequestMessage message = mock(UsersRequestMessage.class);
+        when(message.getRequestType()).thenReturn(UsersRequestType.IS_KNOWN_TOKEN);
+        when(message.getToken()).thenReturn("existingToken");
+        when(tokenService.isKnownToken("existingToken")).thenReturn(true);
+
+        listener.listen(message);
+
+        verify(usersSender).sendResponse(eq(message), argThat(response -> !response.didError() && response.isKnownToken()));
+    }
+
+    @Test
+    void isKnownTokenReturnsFalseForNonExistingToken() {
+        UsersRequestMessage message = mock(UsersRequestMessage.class);
+        when(message.getRequestType()).thenReturn(UsersRequestType.IS_KNOWN_TOKEN);
+        when(message.getToken()).thenReturn("nonExistingToken");
+        when(tokenService.isKnownToken("nonExistingToken")).thenReturn(false);
+
+        listener.listen(message);
+
+        verify(usersSender).sendResponse(eq(message), argThat(response -> !response.didError() && !response.isKnownToken()));
+    }
 }
