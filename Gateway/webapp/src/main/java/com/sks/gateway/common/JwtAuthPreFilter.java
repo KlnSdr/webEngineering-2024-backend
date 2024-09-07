@@ -1,5 +1,8 @@
 package com.sks.gateway.common;
 
+import com.sks.users.api.UsersRequestMessage;
+import com.sks.users.api.UsersResponseMessage;
+import com.sks.users.api.UsersSender;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,10 +21,12 @@ import java.io.IOException;
 public class JwtAuthPreFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final RequestRouteMatcher requestRouteMatcher;
+    private final UsersSender usersSender;
 
-    public JwtAuthPreFilter(JwtUtil jwtUtil, RestrictedRoutesConfig restrictedRoutesConfig) {
+    public JwtAuthPreFilter(JwtUtil jwtUtil, RestrictedRoutesConfig restrictedRoutesConfig, UsersSender usersSender) {
         this.jwtUtil = jwtUtil;
         this.requestRouteMatcher = restrictedRoutesConfig.getRestrictedRoutes();
+        this.usersSender = usersSender;
     }
 
     @Override
@@ -47,6 +52,20 @@ public class JwtAuthPreFilter extends OncePerRequestFilter {
         token = authHeader.substring(7);
 
         if (!jwtUtil.isValidToken(token)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Unauthorized");
+            return;
+        }
+
+        final UsersResponseMessage tokenResponse = usersSender.sendRequest(UsersRequestMessage.isKnownToken(token));
+
+        if (tokenResponse.didError()) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Internal Server Error");
+            return;
+        }
+
+        if (!tokenResponse.isKnownToken()) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized");
             return;

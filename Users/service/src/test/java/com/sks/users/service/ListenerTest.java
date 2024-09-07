@@ -4,6 +4,7 @@ import com.sks.users.api.UserDTO;
 import com.sks.users.api.UsersRequestMessage;
 import com.sks.users.api.UsersRequestType;
 import com.sks.users.api.UsersSender;
+import com.sks.users.service.data.TokenService;
 import com.sks.users.service.data.UsersEntity;
 import com.sks.users.service.data.UsersService;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,13 +22,17 @@ public class ListenerTest {
     @Mock
     private UsersSender usersSender;
 
+    @Mock
+    private TokenService tokenService;
+
     private Listener listener;
 
     @BeforeEach
     void setUp() {
         usersSender = mock(UsersSender.class);
         usersService = mock(UsersService.class);
-        listener = new Listener(usersSender, usersService);
+        tokenService = mock(TokenService.class);
+        listener = new Listener(usersSender, usersService, tokenService);
     }
 
     @Test

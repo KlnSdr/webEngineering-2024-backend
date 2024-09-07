@@ -15,6 +15,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Objects;
 
 @Component
@@ -48,6 +49,11 @@ public class OAuthHandler implements AuthenticationSuccessHandler {
 
             final String token = jwtUtil.generateToken(oAuth2User, internalUser);
 
+            final UsersResponseMessage tokenResponse = usersSender.sendRequest(UsersRequestMessage.storeToken(token, new Date()));
+
+            if (tokenResponse.didError()) {
+                messageErrorHandler.handle(tokenResponse);
+            }
 
             // Redirect to the desired URL after login
             response.sendRedirect(redirectUrl + "?token=" + token);  // Adjust the redirect URL as needed

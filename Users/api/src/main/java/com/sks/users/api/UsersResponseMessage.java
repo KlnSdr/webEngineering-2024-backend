@@ -4,6 +4,7 @@ import com.sks.base.api.BaseMessage;
 
 public class UsersResponseMessage extends BaseMessage {
     UserDTO user = null;
+    private boolean isKnownToken;
 
     public UsersResponseMessage() {
     }
@@ -14,5 +15,13 @@ public class UsersResponseMessage extends BaseMessage {
 
     public void setUser(UserDTO user) {
         this.user = user;
+    }
+
+    public boolean isKnownToken() {
+        return isKnownToken;
+    }
+
+    public void setKnownToken(boolean isKnownToken) {
+        this.isKnownToken = isKnownToken;
     }
 }
