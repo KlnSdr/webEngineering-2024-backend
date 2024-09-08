@@ -64,6 +64,12 @@ public class Listener implements RecipesListener {
         return response;
     }
 
+    /**
+     * Retrieves recipes by the owner's ID.
+     *
+     * @param ownerId the ID of the owner whose recipes are to be retrieved
+     * @return the response message containing the retrieved recipes
+     */
     private RecipeResponseMessage getByOwnerId(long ownerId) {
         final List<RecipeDTO> recipes = service.findByOwner("/users/id/" + ownerId).stream().map(this::map).toList();
 

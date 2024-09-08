@@ -109,6 +109,12 @@ public class Listener implements UsersListener {
         return response;
     }
 
+    /**
+     * Handles a request to store a token.
+     *
+     * @param message the user request message containing the token details
+     * @return the response message indicating the result of the token storage
+     */
     private UsersResponseMessage handleStoreToken(UsersRequestMessage message) {
         final String token = message.getToken();
         final TokenEntity tokenEntity = new TokenEntity();
@@ -119,6 +125,12 @@ public class Listener implements UsersListener {
         return new UsersResponseMessage();
     }
 
+    /**
+     * Handles a request to check if a token is known.
+     *
+     * @param message the user request message containing the token to check
+     * @return the response message indicating whether the token is known
+     */
     private UsersResponseMessage handleIsKnownToken(UsersRequestMessage message) {
         final boolean isKnown = tokenService.isKnownToken(message.getToken());
         final UsersResponseMessage response = new UsersResponseMessage();
