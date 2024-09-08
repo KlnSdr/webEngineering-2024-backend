@@ -34,17 +34,17 @@ public class JwtAuthPreFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         final String path = request.getRequestURI();
         final String method = request.getMethod();
-
-        if (!requestRouteMatcher.isRestrictedRoute(path, method)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        final boolean authRequired = requestRouteMatcher.isRestrictedRoute(path, method);
 
         final String authHeader = request.getHeader("Authorization");
         final String token;
         final String username;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            if (!authRequired) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized");
             return;
@@ -53,6 +53,10 @@ public class JwtAuthPreFilter extends OncePerRequestFilter {
         token = authHeader.substring(7);
 
         if (!jwtUtil.isValidToken(token)) {
+            if (!authRequired) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized");
             return;
@@ -67,6 +71,10 @@ public class JwtAuthPreFilter extends OncePerRequestFilter {
         }
 
         if (!tokenResponse.isKnownToken()) {
+            if (!authRequired) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized");
             return;
@@ -85,6 +93,10 @@ public class JwtAuthPreFilter extends OncePerRequestFilter {
                 .build();
 
         if (!jwtUtil.validateToken(token, userDetails)) {
+            if (!authRequired) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized");
             return;
