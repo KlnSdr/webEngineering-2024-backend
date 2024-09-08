@@ -1,9 +1,14 @@
 package com.sks.gateway.recipes.rest;
 
+import com.sks.gateway.auth.JwtUtil;
+import com.sks.gateway.util.AccessVerifier;
 import com.sks.recipes.api.RecipeRequestMessage;
 import com.sks.recipes.api.RecipeResponseMessage;
 import com.sks.recipes.api.RecipeSender;
 import com.sks.recipes.api.dto.RecipeDTO;
+import com.sks.users.api.UserDTO;
+import com.sks.users.api.UsersResponseMessage;
+import com.sks.users.api.UsersSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,14 +16,17 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.security.Principal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -37,9 +45,47 @@ public class RecipeSearchRestTest {
     @MockBean
     private RecipeSender recipeSender;
 
+    @MockBean
+    private AccessVerifier accessVerifier;
+
+    private final OAuth2User mockPrincipal = new OAuth2User() {
+        @Override
+        public Map<String, Object> getAttributes() {
+            return Map.of("sub", "user");
+        }
+
+        @Override
+        public Collection<? extends GrantedAuthority> getAuthorities() {
+            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        }
+
+        @Override
+        public String getName() {
+            return "user";
+        }
+    };
+
+    @MockBean
+    private UsersSender usersSender;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    private String token;
+    private UserDTO user;
+
     @BeforeEach
     public void setup() {
-        // Setup common mock behavior if needed
+        when(accessVerifier.verifyAccessesSelf(any(Long.class), any(Principal.class))).thenReturn(true);
+
+        user = new UserDTO();
+        user.setUserId(1L);
+        user.setUserName("user");
+
+        UsersResponseMessage usersResponseMessage = new UsersResponseMessage();
+        usersResponseMessage.setKnownToken(true);
+        when(usersSender.sendRequest(any())).thenReturn(usersResponseMessage);
+        token = jwtUtil.generateToken(mockPrincipal, user);
     }
 
     @Test
@@ -69,6 +115,7 @@ public class RecipeSearchRestTest {
     }
 
     @Test
+    @WithMockUser(username = "229")
     public void testSearchRecipeByProducts_Success() throws Exception {
         final Date date = new Date();
         RecipeDTO recipe1 = new RecipeDTO(1, "Pancakes", "Mix and cook", "/images/42", date, "/users/id/1");
@@ -77,6 +124,7 @@ public class RecipeSearchRestTest {
         when(recipeSender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
 
         mockMvc.perform(post("/search/recipes/by-products")
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[\"eggs\", \"milk\"]")
                         .accept(MediaType.APPLICATION_JSON))
