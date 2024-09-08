@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/recipes")
@@ -56,7 +57,7 @@ public class RecipesResource {
     @GetMapping("/{id}")
     @ResponseBody
     public RecipeDTO getRecipeById(
-            @Parameter(description = "ID of the recipe to be fetched") @PathVariable("id") int id) {
+            @Parameter(description = "ID of the recipe to be fetched") @PathVariable("id") int id, Principal principal) {
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getById(id));
 
         if (response.didError()) {
@@ -67,7 +68,18 @@ public class RecipesResource {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipe with id " + id + " not found");
         }
 
-        return response.getRecipes().getFirst();
+        final RecipeDTO recipe = response.getRecipes().getFirst();
+
+        if (!recipe.isPrivate()) {
+            return recipe;
+        }
+
+        final UserDTO currentUser = userHelper.getCurrentInternalUser(principal);
+        if (currentUser == null || !recipe.getOwnerUri().equals("/users/id/" + currentUser.getUserId())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+        }
+
+        return recipe;
     }
 
     @Operation(summary = "Get recipes by user ID")
@@ -77,12 +89,13 @@ public class RecipesResource {
     })
     @GetMapping("/user/{userId}")
     @ResponseBody
-    public List<RecipeDTO> getRecipesByUser(@PathVariable("userId") long userId) {
+    public List<RecipeDTO> getRecipesByUser(@PathVariable("userId") long userId, Principal principal) {
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getByOwnerId(userId));
         if (response.didError()) {
             messageErrorHandler.handle(response);
         }
-        return response.getRecipes();
+        final UserDTO user = userHelper.getCurrentInternalUser(principal);
+        return filterForPrivateRecipes(response.getRecipes(), user);
     }
 
     @Operation(summary = "Get multiple recipes by IDs")
@@ -100,12 +113,15 @@ public class RecipesResource {
     @PostMapping("/get-multiple")
     @ResponseBody
     public RecipeDTO[] getMultipleRecipesById(
-            @Parameter(description = "IDs of the recipes to be fetched") @RequestBody long[] ids) {
+            @Parameter(description = "IDs of the recipes to be fetched") @RequestBody long[] ids, Principal principal) {
         final RecipeResponseMessage response = sender.sendRequest(RecipeRequestMessage.getById(ids));
         if (response.didError()) {
             messageErrorHandler.handle(response);
         }
-        return response.getRecipes().toArray(new RecipeDTO[0]);
+
+        final UserDTO user = userHelper.getCurrentInternalUser(principal);
+
+        return filterForPrivateRecipes(response.getRecipes(), user).toArray(new RecipeDTO[0]);
     }
 
     @Operation(summary = "Create a new recipe")
@@ -194,5 +210,13 @@ public class RecipesResource {
         }
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+
+    private List<RecipeDTO> filterForPrivateRecipes(List<RecipeDTO> recipes, UserDTO user) {
+        final String currentUserUri = user == null ? "" : "/users/id/" + user.getUserId();
+        return recipes.stream()
+                .filter(recipe -> !recipe.isPrivate() || recipe.getOwnerUri().equals(currentUserUri))
+                .collect(Collectors.toList());
     }
 }
