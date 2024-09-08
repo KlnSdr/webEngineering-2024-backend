@@ -1,6 +1,7 @@
 package com.sks.gateway.recipes.rest;
 
 import com.sks.gateway.common.MessageErrorHandler;
+import com.sks.gateway.util.UserHelper;
 import com.sks.recipes.api.RecipeRequestMessage;
 import com.sks.recipes.api.RecipeResponseMessage;
 import com.sks.recipes.api.RecipeSender;
@@ -26,6 +27,8 @@ public class RecipeSearchTest {
     private RecipeSender sender;
     @Mock
     private MessageErrorHandler errorHandler;
+    @Mock
+    private UserHelper userHelper;
 
     private SearchResource controller;
 
@@ -33,7 +36,8 @@ public class RecipeSearchTest {
     public void setUp() {
         sender = mock(RecipeSender.class);
         errorHandler = mock(MessageErrorHandler.class);
-        controller = new SearchResource(sender, errorHandler);
+        userHelper = mock(UserHelper.class);
+        controller = new SearchResource(sender, errorHandler, userHelper);
     }
 
     @Test
@@ -41,8 +45,9 @@ public class RecipeSearchTest {
         List<RecipeDTO> recipe = List.of(new RecipeDTO(1L, "Tomatensoße", "description", "imageUri", false, new Timestamp(0L), "ownerUri", Collections.singletonList("0"), Collections.singletonList("Tomaten"), Map.of("Tomaten", 3)));
         RecipeResponseMessage responseMessage = new RecipeResponseMessage(recipe);
         when(sender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
+        when(userHelper.getCurrentInternalUser(any())).thenReturn(null);
 
-        List<RecipeDTO> result = controller.getAllRecipesBySearchString("Tomatensoße");
+        List<RecipeDTO> result = controller.getAllRecipesBySearchString("Tomatensoße", null);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -68,7 +73,7 @@ public class RecipeSearchTest {
         doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(errorHandler).handle(responseMessage);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            controller.getAllRecipesBySearchString("Tomatensoße");
+            controller.getAllRecipesBySearchString("Tomatensoße", null);
         });
 
         assertEquals("Internal Server Error", exception.getReason());
@@ -79,8 +84,9 @@ public class RecipeSearchTest {
         List<RecipeDTO> recipe = List.of(new RecipeDTO(1L, "Tomatensoße", "description", "imageUri", false, new Timestamp(0L), "ownerUri", Collections.singletonList("0"), Collections.singletonList("Tomaten"), Map.of("Tomaten", 3)));
         RecipeResponseMessage responseMessage = new RecipeResponseMessage(recipe);
         when(sender.sendRequest(any(RecipeRequestMessage.class))).thenReturn(responseMessage);
+        when(userHelper.getCurrentInternalUser(any())).thenReturn(null);
 
-        List<RecipeDTO> result = controller.searchRecipeByProducts(new String[]{"Tomaten"});
+        List<RecipeDTO> result = controller.searchRecipeByProducts(new String[]{"Tomaten"}, null);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -104,7 +110,7 @@ public class RecipeSearchTest {
         doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(errorHandler).handle(responseMessage);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            controller.searchRecipeByProducts(new String[]{"Tomaten"});
+            controller.searchRecipeByProducts(new String[]{"Tomaten"}, null);
         });
 
         assertEquals("Internal Server Error", exception.getReason());
