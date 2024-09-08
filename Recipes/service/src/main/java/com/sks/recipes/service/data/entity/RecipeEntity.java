@@ -16,7 +16,7 @@ public class RecipeEntity {
     private Long id;
     @Column(name = "RECIPE_TITLE")
     private String title;
-    @Column(name = "RECIPE_DESCRIPTION")
+    @Column(name = "RECIPE_DESCRIPTION", length = 10000)
     private String description;
     @Column(name = "RECIPE_IMAGE_URI")
     private String imageUri;
