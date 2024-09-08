@@ -54,8 +54,9 @@ public class RecipesResourceTest {
         RecipeResponseMessage response = new RecipeResponseMessage();
         response.setRecipes(List.of(recipe));
         when(recipeSender.sendRequest(any())).thenReturn(response);
+        when(userHelper.getCurrentInternalUser(principal)).thenReturn(null);
 
-        RecipeDTO result = controller.getRecipeById(id);
+        RecipeDTO result = controller.getRecipeById(id, null);
 
         assertEquals(recipe, result);
     }
@@ -67,7 +68,7 @@ public class RecipesResourceTest {
         response.setRecipes(List.of());
         when(recipeSender.sendRequest(any())).thenReturn(response);
 
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> controller.getRecipeById(id));
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> controller.getRecipeById(id, null));
 
         assertEquals(exception.getStatusCode(), HttpStatus.NOT_FOUND);
     }
@@ -80,7 +81,7 @@ public class RecipesResourceTest {
         doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(messageErrorHandler).handle(responseMessage);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            controller.getRecipeById(1);
+            controller.getRecipeById(1, null);
         });
 
         assertEquals("Internal Server Error", exception.getReason());
@@ -97,8 +98,9 @@ public class RecipesResourceTest {
         recipes.add(recipe2);
         when(recipeSender.sendRequest(any())).thenReturn(response);
         when(response.getRecipes()).thenReturn(recipes);
+        when(userHelper.getCurrentInternalUser(principal)).thenReturn(null);
 
-        RecipeDTO[] result = controller.getMultipleRecipesById(ids);
+        RecipeDTO[] result = controller.getMultipleRecipesById(ids, null);
 
         assertEquals(2, result.length);
         assertEquals(recipe1, result[0]);
@@ -113,7 +115,7 @@ public class RecipesResourceTest {
         doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(messageErrorHandler).handle(responseMessage);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-            controller.getMultipleRecipesById(new long[]{1, 2});
+            controller.getMultipleRecipesById(new long[]{1, 2}, null);
         });
 
         assertEquals("Internal Server Error", exception.getReason());
@@ -257,8 +259,9 @@ public class RecipesResourceTest {
         RecipeResponseMessage response = new RecipeResponseMessage();
         response.setRecipes(List.of(recipe));
         when(recipeSender.sendRequest(any())).thenReturn(response);
+        when(userHelper.getCurrentInternalUser(principal)).thenReturn(null);
 
-        List<RecipeDTO> result = controller.getRecipesByUser(userId);
+        List<RecipeDTO> result = controller.getRecipesByUser(userId, null);
 
         assertEquals(1, result.size());
         assertEquals(recipe, result.getFirst());
@@ -270,8 +273,9 @@ public class RecipesResourceTest {
         RecipeResponseMessage response = new RecipeResponseMessage();
         response.setRecipes(List.of());
         when(recipeSender.sendRequest(any())).thenReturn(response);
+        when(userHelper.getCurrentInternalUser(principal)).thenReturn(null);
 
-        List<RecipeDTO> result = controller.getRecipesByUser(userId);
+        List<RecipeDTO> result = controller.getRecipesByUser(userId, null);
 
         assertEquals(0, result.size());
     }
@@ -282,9 +286,10 @@ public class RecipesResourceTest {
         RecipeResponseMessage response = new RecipeResponseMessage();
         response.setDidError(true);
         when(recipeSender.sendRequest(any())).thenReturn(response);
+        when(userHelper.getCurrentInternalUser(principal)).thenReturn(null);
         doThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(messageErrorHandler).handle(response);
 
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> controller.getRecipesByUser(userId));
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> controller.getRecipesByUser(userId, null));
 
         assertEquals("Internal Server Error", exception.getReason());
     }
