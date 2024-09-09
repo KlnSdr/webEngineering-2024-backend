@@ -18,20 +18,43 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Objects;
 
+/**
+ * Handler for successful OAuth2 authentication.
+ * This class implements the AuthenticationSuccessHandler interface and handles
+ * the actions to be taken upon successful authentication.
+ */
 @Component
 public class OAuthHandler implements AuthenticationSuccessHandler {
     private final UsersSender usersSender;
     private final MessageErrorHandler messageErrorHandler;
     private final JwtUtil jwtUtil;
+
+    /**
+     * The URL to redirect to after successful authentication.
+     */
     @Value("${app.oauth2.successRedirectUrl}")
     private String redirectUrl;
 
+    /**
+     * Constructs an OAuthHandler with the specified UsersSender.
+     *
+     * @param usersSender the sender to use for sending user requests
+     */
     public OAuthHandler(UsersSender usersSender, MessageErrorHandler messageErrorHandler, JwtUtil jwtUtil) {
         this.usersSender = usersSender;
         this.messageErrorHandler = messageErrorHandler;
         this.jwtUtil = jwtUtil;
     }
 
+    /**
+     * Handles successful authentication by creating a new user in the system if it does not exist
+     * and redirecting to the configured URL.
+     *
+     * @param request the HTTP request
+     * @param response the HTTP response
+     * @param authentication the authentication object
+     * @throws IOException if an input or output exception occurs
+     */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         try {
@@ -57,9 +80,9 @@ public class OAuthHandler implements AuthenticationSuccessHandler {
             }
 
             // Redirect to the desired URL after login
-            response.sendRedirect(redirectUrl + "?token=" + token);  // Adjust the redirect URL as needed
+            response.sendRedirect(redirectUrl + "?token=" + token);
         } catch (Exception e) {
-            response.sendRedirect("/login?error=true");  // Adjust the redirect URL as needed
+            response.sendRedirect("/login?error=true");
         }
     }
 }

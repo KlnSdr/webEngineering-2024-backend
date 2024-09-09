@@ -83,7 +83,7 @@ services:
       MYSQL_ROOT_PASSWORD: secret
     networks:
       - web_net
-  # RECIPES_SERVICE ===============================================
+  # USERS_SERVICE =================================================
   users_service:
     build:
       context: .
@@ -100,7 +100,7 @@ services:
     networks:
       - web_net
 
-  # RECIPES-SERVICE-DATABASE ======================================
+  # USERS-SERVICE-DATABASE ========================================
   users_service_db:
     image: mariadb:10.3
     container_name: webEng_UsersService_DB
@@ -110,7 +110,7 @@ services:
       MYSQL_ROOT_PASSWORD: secret
     networks:
       - web_net
-  # SURVEY_SERVICE ===============================================
+  # SURVEY_SERVICE ================================================
   surveys_service:
     build:
       context: .
@@ -137,7 +137,7 @@ services:
       MYSQL_ROOT_PASSWORD: secret
     networks:
       - web_net
-  # RECIPES_SERVICE ===============================================
+  # FRIDGE_SERVICE ================================================
   fridge_service:
     build:
       context: .
@@ -154,7 +154,7 @@ services:
     networks:
       - web_net
 
-  # RECIPES-SERVICE-DATABASE ======================================
+  # FRIDGE-SERVICE-DATABASE =======================================
   fridge_service_db:
     image: mariadb:10.3
     container_name: webEng_FridgeService_DB

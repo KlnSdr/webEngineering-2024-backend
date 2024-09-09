@@ -9,16 +9,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Listener class for handling product-related messages.
+ * Implements the ProductsListener interface to process incoming product requests.
+ */
 @Component
 public class Listener implements ProductsListener {
     private final ProductsSender sender;
     private final ProductsService service;
 
+    /**
+     * Constructs a Listener with the specified ProductsSender and ProductsService.
+     *
+     * @param sender the sender for sending product responses
+     * @param service the service for managing product entities
+     */
     public Listener(ProductsSender sender, ProductsService service) {
         this.sender = sender;
         this.service = service;
     }
 
+    /**
+     * Listens for incoming product request messages and processes them.
+     *
+     * @param message the product request message
+     */
     @Override
     public void listen(ProductsRequestMessage message) {
         ProductsResponseMessage response;
@@ -43,10 +58,21 @@ public class Listener implements ProductsListener {
         return response;
     }
 
+    /**
+     * Retrieves all product entities and maps them to ProductDTO objects.
+     *
+     * @return an array of ProductDTO objects representing all products
+     */
     private ProductDTO[] getAll() {
         return service.getAll().stream().map(this::map).toArray(ProductDTO[]::new);
     }
 
+    /**
+     * Retrieves filtered product entities based on the specified IDs and maps them to ProductDTO objects.
+     *
+     * @param ids an array of product IDs to filter by
+     * @return an array of ProductDTO objects representing the filtered products
+     */
     private ProductDTO[] getFiltered(long[] ids) {
         final List<ProductDTO> products = new ArrayList<>();
 
@@ -58,6 +84,12 @@ public class Listener implements ProductsListener {
         return products.toArray(new ProductDTO[0]);
     }
 
+    /**
+     * Maps a ProductEntity object to a ProductDTO object.
+     *
+     * @param entity the ProductEntity object to map
+     * @return the mapped ProductDTO object
+     */
     private ProductDTO map(ProductEntity entity) {
         return new ProductDTO(entity.getId(), entity.getName(), entity.getUnit());
     }

@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Listener class for handling fridge-related messages.
+ */
 @Component
 public class Listener implements FridgeListener {
     private static final Logger log = LoggerFactory.getLogger(Listener.class);
@@ -22,12 +25,24 @@ public class Listener implements FridgeListener {
     private final FridgeService service;
     private final Jackson2JsonMessageConverter converter;
 
+    /**
+     * Constructor for Listener.
+     *
+     * @param sender the fridge sender
+     * @param service the fridge service
+     * @param converter the message converter
+     */
     public Listener(FridgeSender sender, FridgeService service, @Qualifier("fridgeMessageConverter") Jackson2JsonMessageConverter converter) {
         this.sender = sender;
         this.service = service;
         this.converter = converter;
     }
 
+    /**
+     * Listens for incoming messages and processes them.
+     *
+     * @param message the incoming message
+     */
     @Override
     public void listen(Message message) {
         final Object obj = converter.fromMessage(message);
@@ -60,6 +75,12 @@ public class Listener implements FridgeListener {
         return response;
     }
 
+    /**
+     * Handles requests to get a Fridge
+     *
+     * @param request the request message
+     * @return the response message
+     */
     private FridgeResponseMessage handleGet(FridgeRequestMessage request) {
         final long userId = request.getUserId();
         final String userUri = uriFromUserId(userId);
@@ -78,6 +99,12 @@ public class Listener implements FridgeListener {
         return response;
     }
 
+    /**
+     * Handles requests to update a fridge in the database.
+     *
+     * @param request the request message
+     * @return the response message
+     */
     private FridgeResponseMessage handleUpdate(FridgeRequestMessage request) {
         final long userId = request.getUserId();
         final String userUri = uriFromUserId(userId);
@@ -107,6 +134,12 @@ public class Listener implements FridgeListener {
         return response;
     }
 
+    /**
+     * Handles requests to delete fridges.
+     *
+     * @param request the request message
+     * @return the response message
+     */
     private FridgeResponseMessage handleDelete(FridgeRequestMessage request) {
         final long userId = request.getUserId();
         final long productId = request.getProductId();
@@ -132,14 +165,32 @@ public class Listener implements FridgeListener {
         return response;
     }
 
+    /**
+     * Converts a user ID to a URI.
+     *
+     * @param id the user ID
+     * @return the user URI
+     */
     private String uriFromUserId(long id) {
         return "/users/id/" + id;
     }
 
+    /**
+     * Converts a product ID to a URI.
+     *
+     * @param id the product ID
+     * @return the product URI
+     */
     private String uriFromProductId(long id) {
         return "/products/" + id;
     }
 
+    /**
+     * Maps a FridgeEntity to a FridgeDTO.
+     *
+     * @param fridgeEntity the fridge entity
+     * @return the fridge DTO
+     */
     private FridgeDTO map(FridgeEntity fridgeEntity) {
         final FridgeDTO dto = new FridgeDTO();
         dto.setUserUri(fridgeEntity.getUserUri());
@@ -147,6 +198,12 @@ public class Listener implements FridgeListener {
         return dto;
     }
 
+    /**
+     * Maps a list of FridgeAddItemDTO to a map of product URIs and quantities.
+     *
+     * @param products the list of products
+     * @return the map of product URIs and quantities
+     */
     private Map<String, Integer> map(List<FridgeAddItemDTO> products) {
         final Map<String, Integer> map = new HashMap<>();
         for (FridgeAddItemDTO product : products) {

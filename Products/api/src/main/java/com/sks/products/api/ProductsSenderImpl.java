@@ -8,14 +8,30 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+/**
+ * Implementation of the ProductsSender interface.
+ * Extends the BaseSenderImpl class to provide specific functionality for product-related messages.
+ */
 @Component
 public class ProductsSenderImpl extends BaseSenderImpl<ProductsRequestMessage, ProductsResponseMessage, ProductsQueueConfig> implements ProductsSender {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProductsSenderImpl.class);
 
+    /**
+     * Constructs a ProductsSenderImpl with the specified AMQP template and queue configuration.
+     *
+     * @param amqpTemplate the AMQP template for sending messages
+     * @param config the configuration for the products queue
+     */
     public ProductsSenderImpl(@Qualifier("productsRabbitTemplate") AmqpTemplate amqpTemplate, ProductsQueueConfig config) {
         super(amqpTemplate, config);
     }
 
+    /**
+     * Converts the response object to a ProductsResponseMessage.
+     *
+     * @param response the response object to convert
+     * @return the converted ProductsResponseMessage, or an error response if the conversion fails
+     */
     @Override
     protected ProductsResponseMessage convertResponse(Object response) {
         if (response instanceof ProductsResponseMessage) {
@@ -26,6 +42,12 @@ public class ProductsSenderImpl extends BaseSenderImpl<ProductsRequestMessage, P
         return errResponse;
     }
 
+    /**
+     * Creates an error response with the specified error message.
+     *
+     * @param errorMessage the error message to log and include in the response
+     * @return a ProductsResponseMessage representing the error
+     */
     @Override
     protected ProductsResponseMessage createErrorResponse(String errorMessage) {
         LOGGER.error(errorMessage);
